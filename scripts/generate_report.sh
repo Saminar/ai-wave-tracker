@@ -707,11 +707,11 @@ function initRadarMain() {{
     legend: {{ data: ['中芯国际', '阿里巴巴', '联想集团'], bottom: 0, textStyle: {{ color: '#94a3b8', fontSize: 11 }} }},
     radar: {{
       indicator: [
-        {{ name: '技术壁垒\n(研发/专利)', max: 100 }},
-        {{ name: '市场地位\n(份额/定价)', max: 100 }},
-        {{ name: 'AI受益度\n(直接相关)', max: 100 }},
-        {{ name: '政策顺风\n(国产替代)', max: 100 }},
-        {{ name: '估值安全\n(PE/PEG)', max: 100 }},
+        {{ name: '技术壁垒\\n(研发/专利)', max: 100 }},
+        {{ name: '市场地位\\n(份额/定价)', max: 100 }},
+        {{ name: 'AI受益度\\n(直接相关)', max: 100 }},
+        {{ name: '政策顺风\\n(国产替代)', max: 100 }},
+        {{ name: '估值安全\\n(PE/PEG)', max: 100 }},
       ],
       splitArea: {{ areaStyle: {{ color: ['rgba(30,41,59,0.3)','rgba(30,41,59,0.5)','rgba(30,41,59,0.7)','rgba(30,41,59,0.9)','rgba(30,41,59,1)'].reverse() }} }},
       axisName: {{ color: '#94a3b8', fontSize: 11, lineHeight: 16 }},
