@@ -1,0 +1,360 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-04-22",
+  "total_companies": 62,
+  "sectors": {
+    "ai_gpu_asic": "AI GPU / ASIC 算力核心",
+    "optical_module": "光模块 / 网络互联",
+    "ai_server": "AI 服务器 / ODM",
+    "cloud_platform": "云计算 / AI 平台",
+    "semi_equipment": "半导体设备 / EDA",
+    "foundry": "先进代工",
+    "memory_hbm": "HBM / 存储接口"
+  },
+  "hk_stocks": [
+    {
+      "code": "00981",
+      "name_zh": "中芯国际",
+      "name_en": "SMIC",
+      "market": "HKEX",
+      "sector": "foundry",
+      "tier": 1,
+      "description": "大陆先进代工龙头，18A(1.8nm等效)工艺2026量产，大基金三期持股",
+      "key_catalysts": ["18A量产验证", "大基金入股", "国产替代"],
+      "target_upside_pct": 40,
+      "signal": "buy",
+      "pe_range": [40, 55]
+    },
+    {
+      "code": "09988",
+      "name_zh": "阿里巴巴",
+      "name_en": "Alibaba",
+      "market": "HKEX",
+      "sector": "cloud_platform",
+      "tier": 1,
+      "description": "阿里云/通义千问，国内AI基础设施第一，严重低估，持续大规模回购",
+      "key_catalysts": ["通义大模型商业化", "阿里云AI收入增速", "回购提速"],
+      "target_upside_pct": 85,
+      "signal": "buy",
+      "pe_range": [12, 18]
+    },
+    {
+      "code": "00992",
+      "name_zh": "联想集团",
+      "name_en": "Lenovo",
+      "market": "HKEX",
+      "sector": "ai_server",
+      "tier": 1,
+      "description": "AI服务器+AI PC双引擎，PE仅8x为全球同类最低，$155B订单储备",
+      "key_catalysts": ["AI PC换机超级周期", "AI服务器份额提升", "ISG利润率改善"],
+      "target_upside_pct": 30,
+      "signal": "buy",
+      "pe_range": [7, 10]
+    },
+    {
+      "code": "09903",
+      "name_zh": "天数智芯",
+      "name_en": "Tianshu Zhixin",
+      "market": "HKEX",
+      "sector": "ai_gpu_asic",
+      "tier": 2,
+      "description": "国产AI训练GPU，天垓100/BI-V150，DeepSeek生态受益",
+      "key_catalysts": ["国产替代加速", "DeepSeek适配", "数据中心订单"],
+      "target_upside_pct": 50,
+      "signal": "accumulate",
+      "pe_range": [0, 0]
+    },
+    {
+      "code": "06809",
+      "name_zh": "澜起科技(H)",
+      "name_en": "Montage Technology H",
+      "market": "HKEX",
+      "sector": "memory_hbm",
+      "tier": 2,
+      "description": "DDR5/HBM接口芯片，AI内存超级周期8-12季度能见度",
+      "key_catalysts": ["HBM4接口芯片量产", "AI服务器内存升级", "客户集中度降低"],
+      "target_upside_pct": 45,
+      "signal": "buy",
+      "pe_range": [25, 35]
+    },
+    {
+      "code": "09888",
+      "name_zh": "百度集团",
+      "name_en": "Baidu",
+      "market": "HKEX",
+      "sector": "cloud_platform",
+      "tier": 2,
+      "description": "文心一言/萝卜快跑，AI原生转型，估值处于历史低位",
+      "key_catalysts": ["萝卜快跑商业化", "文心大模型API收入", "AI广告变现"],
+      "target_upside_pct": 35,
+      "signal": "accumulate",
+      "pe_range": [10, 16]
+    },
+    {
+      "code": "00700",
+      "name_zh": "腾讯控股",
+      "name_en": "Tencent",
+      "market": "HKEX",
+      "sector": "cloud_platform",
+      "tier": 1,
+      "description": "腾讯云/混元大模型，AI赋能游戏广告，现金流充裕",
+      "key_catalysts": ["混元大模型商业化", "游戏AI提效", "AI广告精准化"],
+      "target_upside_pct": 20,
+      "signal": "hold",
+      "pe_range": [18, 25]
+    },
+    {
+      "code": "00763",
+      "name_zh": "中兴通讯",
+      "name_en": "ZTE",
+      "market": "HKEX",
+      "sector": "ai_server",
+      "tier": 2,
+      "description": "AI网络设备+光传输，受益于国内算力基础设施建设",
+      "key_catalysts": ["算力网络建设加速", "运营商AI网络升级", "光传输新订单"],
+      "target_upside_pct": 25,
+      "signal": "accumulate",
+      "pe_range": [12, 18]
+    },
+    {
+      "code": "01347",
+      "name_zh": "华虹半导体",
+      "name_en": "Hua Hong Semiconductor",
+      "market": "HKEX",
+      "sector": "foundry",
+      "tier": 2,
+      "description": "特色工艺代工(功率/模拟/嵌入式闪存)，受益于新能源车+IoT需求",
+      "key_catalysts": ["功率半导体产能扩张", "车规芯片需求", "大基金支持"],
+      "target_upside_pct": 20,
+      "signal": "hold",
+      "pe_range": [20, 30]
+    },
+    {
+      "code": "01810",
+      "name_zh": "小米集团",
+      "name_en": "Xiaomi",
+      "market": "HKEX",
+      "sector": "cloud_platform",
+      "tier": 2,
+      "description": "AI Phone+AI家居生态，澎湃OS+自研AI芯片，汽车业务爬坡",
+      "key_catalysts": ["AI手机换机周期", "小米汽车量产爬坡", "澎湃芯片迭代"],
+      "target_upside_pct": 25,
+      "signal": "hold",
+      "pe_range": [20, 30]
+    },
+    {
+      "code": "02382",
+      "name_zh": "舜宇光学",
+      "name_en": "Sunny Optical",
+      "market": "HKEX",
+      "sector": "optical_module",
+      "tier": 2,
+      "description": "光学镜头+AR/VR光学组件，受益于AI终端硬件升级",
+      "key_catalysts": ["AR眼镜渗透率提升", "AI摄像模组升级", "苹果供应链"],
+      "target_upside_pct": 15,
+      "signal": "hold",
+      "pe_range": [18, 28]
+    },
+    {
+      "code": "00020",
+      "name_zh": "商汤科技",
+      "name_en": "SenseTime",
+      "market": "HKEX",
+      "sector": "cloud_platform",
+      "tier": 3,
+      "description": "⚠️ AI软件平台，持续亏损，高估值，AI变现路径不清晰",
+      "key_catalysts": [],
+      "target_upside_pct": -20,
+      "signal": "sell",
+      "pe_range": [0, 0]
+    },
+    {
+      "code": "06060",
+      "name_zh": "旷视科技",
+      "name_en": "Megvii",
+      "market": "HKEX",
+      "sector": "cloud_platform",
+      "tier": 3,
+      "description": "⚠️ 计算机视觉AI，持续亏损，竞争格局恶化",
+      "key_catalysts": [],
+      "target_upside_pct": -15,
+      "signal": "sell",
+      "pe_range": [0, 0]
+    }
+  ],
+  "ashare_stocks": [
+    {
+      "code": "688256",
+      "name_zh": "寒武纪",
+      "market": "科创板",
+      "sector": "ai_gpu_asic",
+      "description": "国产AI推理芯片龙头，思元590系列"
+    },
+    {
+      "code": "688041",
+      "name_zh": "海光信息",
+      "market": "科创板",
+      "sector": "ai_gpu_asic",
+      "description": "x86兼容CPU/DCU，数据中心加速"
+    },
+    {
+      "code": "688047",
+      "name_zh": "龙芯中科",
+      "market": "科创板",
+      "sector": "ai_gpu_asic",
+      "description": "自主LoongArch ISA，CPU自主可控"
+    },
+    {
+      "code": "603828",
+      "name_zh": "澜起科技",
+      "market": "上交所",
+      "sector": "memory_hbm",
+      "description": "DDR5/HBM接口芯片，AI内存超级周期"
+    },
+    {
+      "code": "301269",
+      "name_zh": "华大九天",
+      "market": "创业板",
+      "sector": "semi_equipment",
+      "description": "国产EDA工具龙头，自主可控核心"
+    },
+    {
+      "code": "300308",
+      "name_zh": "中际旭创",
+      "market": "创业板",
+      "sector": "optical_module",
+      "description": "800G/1.6T光模块全球龙头"
+    },
+    {
+      "code": "300394",
+      "name_zh": "天孚通信",
+      "market": "创业板",
+      "sector": "optical_module",
+      "description": "光器件/FA组件，上游核心供应商"
+    },
+    {
+      "code": "300502",
+      "name_zh": "新易盛",
+      "market": "创业板",
+      "sector": "optical_module",
+      "description": "高速光模块，800G出货领先"
+    },
+    {
+      "code": "000988",
+      "name_zh": "华工科技",
+      "market": "深交所",
+      "sector": "optical_module",
+      "description": "激光器+光模块+传感器多元化"
+    },
+    {
+      "code": "002281",
+      "name_zh": "光迅科技",
+      "market": "深交所",
+      "sector": "optical_module",
+      "description": "中国信科旗下，光器件芯片龙头"
+    },
+    {
+      "code": "000977",
+      "name_zh": "浪潮信息",
+      "market": "深交所",
+      "sector": "ai_server",
+      "description": "国内AI服务器龙头，大客户腾讯/阿里"
+    },
+    {
+      "code": "601138",
+      "name_zh": "工业富联",
+      "market": "上交所",
+      "sector": "ai_server",
+      "description": "富士康子公司，AI服务器ODM全球前列"
+    },
+    {
+      "code": "603019",
+      "name_zh": "中科曙光",
+      "market": "上交所",
+      "sector": "ai_server",
+      "description": "高性能计算+AI服务器，政府采购优势"
+    }
+  ],
+  "us_stocks": [
+    {
+      "code": "NVDA",
+      "name_zh": "英伟达",
+      "name_en": "NVIDIA",
+      "sector": "ai_gpu_asic",
+      "description": "AI GPU绝对龙头，Blackwell/Rubin架构",
+      "market_cap_b_usd": 3000
+    },
+    {
+      "code": "AMD",
+      "name_zh": "超微半导体",
+      "name_en": "AMD",
+      "sector": "ai_gpu_asic",
+      "description": "MI300X/MI350系列，NVDA替代方案",
+      "market_cap_b_usd": 250
+    },
+    {
+      "code": "AVGO",
+      "name_zh": "博通",
+      "name_en": "Broadcom",
+      "sector": "ai_gpu_asic",
+      "description": "定制ASIC+AI网络芯片，超级大客户",
+      "market_cap_b_usd": 800
+    },
+    {
+      "code": "MRVL",
+      "name_zh": "迈威尔科技",
+      "name_en": "Marvell",
+      "sector": "optical_module",
+      "description": "光互联DSP+定制AI芯片，CPO核心",
+      "market_cap_b_usd": 55
+    },
+    {
+      "code": "COHR",
+      "name_zh": "科锐",
+      "name_en": "Coherent",
+      "sector": "optical_module",
+      "description": "激光器+CPO技术核心玩家",
+      "market_cap_b_usd": 15
+    },
+    {
+      "code": "SMCI",
+      "name_zh": "超微电脑",
+      "name_en": "Super Micro",
+      "sector": "ai_server",
+      "description": "AI服务器龙头，NVDA直接合作伙伴",
+      "market_cap_b_usd": 25
+    },
+    {
+      "code": "ARM",
+      "name_zh": "Arm",
+      "name_en": "Arm Holdings",
+      "sector": "ai_gpu_asic",
+      "description": "CPU/NPU IP核，几乎所有AI芯片采用",
+      "market_cap_b_usd": 130
+    },
+    {
+      "code": "SNPS",
+      "name_zh": "新思科技",
+      "name_en": "Synopsys",
+      "sector": "semi_equipment",
+      "description": "EDA工具龙头，AI芯片设计必需品",
+      "market_cap_b_usd": 90
+    },
+    {
+      "code": "ASML",
+      "name_zh": "阿斯麦",
+      "name_en": "ASML",
+      "sector": "semi_equipment",
+      "description": "EUV光刻机垄断，先进工艺不可或缺",
+      "market_cap_b_usd": 320
+    },
+    {
+      "code": "MSFT",
+      "name_zh": "微软",
+      "name_en": "Microsoft",
+      "sector": "cloud_platform",
+      "description": "Azure+OpenAI，AI工作流全球最大受益者",
+      "market_cap_b_usd": 3200
+    }
+  ]
+}

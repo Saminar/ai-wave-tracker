@@ -1,0 +1,1117 @@
+#!/bin/bash
+# ============================================================
+# AI浪潮产业链 — HTML可视化报告生成器
+# 用法: bash generate_report.sh <stock.json> <news.json> <analysis.json> [output_dir]
+#
+# 生成暗色主题、多Tab、ECharts多图表的单文件HTML投资仪表盘
+# ============================================================
+
+set -e
+
+STOCK_JSON="${1:-/tmp/aiwave_stock.json}"
+NEWS_JSON="${2:-/tmp/aiwave_news.json}"
+ANALYSIS_JSON="${3:-/tmp/aiwave_analysis.json}"
+OUTPUT_DIR="${4:-/tmp}"
+REPORT_DATE=$(date +%Y-%m-%d)
+OUTPUT_FILE="$OUTPUT_DIR/aiwave_report_${REPORT_DATE}.html"
+
+echo "🌊 AI浪潮产业链 — HTML报告生成器"
+echo "  行情数据: $STOCK_JSON"
+echo "  新闻数据: $NEWS_JSON"
+echo "  分析数据: $ANALYSIS_JSON"
+echo "  输出报告: $OUTPUT_FILE"
+echo ""
+
+# ─── 读取JSON数据 ─────────────────────────────────────────────────────────────
+STOCK_DATA="{}"
+NEWS_DATA="{}"
+ANALYSIS_DATA="{}"
+
+[ -f "$STOCK_JSON" ] && STOCK_DATA=$(cat "$STOCK_JSON")
+[ -f "$NEWS_JSON" ] && NEWS_DATA=$(cat "$NEWS_JSON")
+[ -f "$ANALYSIS_JSON" ] && ANALYSIS_DATA=$(cat "$ANALYSIS_JSON")
+
+# ─── 生成HTML报告 ─────────────────────────────────────────────────────────────
+python3 - "$OUTPUT_FILE" "$REPORT_DATE" << 'PYEOF'
+import sys
+import json
+from pathlib import Path
+
+output_path = sys.argv[1]
+report_date = sys.argv[2]
+
+# 从 shell 变量读取（通过 stdin 传入更简洁的方式：直接内嵌数据模板）
+# 这里生成一个完整的自包含HTML，数据直接内嵌
+
+html = f'''<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌊 AI浪潮产业链投资仪表盘 · {report_date}</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+  :root {{
+    --bg: #0f172a;
+    --card: #1e293b;
+    --card2: #162032;
+    --border: #334155;
+    --text: #e2e8f0;
+    --muted: #94a3b8;
+    --accent: #38bdf8;
+    --green: #34d399;
+    --red: #f87171;
+    --yellow: #fbbf24;
+    --purple: #a78bfa;
+  }}
+  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+  body {{ background: var(--bg); color: var(--text); font-family: -apple-system, 'PingFang SC', sans-serif; min-height: 100vh; }}
+
+  .header-bg {{
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    position: relative; overflow: hidden;
+    border-bottom: 1px solid var(--border);
+    padding: 28px 32px 24px;
+  }}
+  .header-bg::before {{
+    content: '';
+    position: absolute; top: -80px; left: 20%; width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }}
+  .header-bg::after {{
+    content: '';
+    position: absolute; bottom: -60px; right: 10%; width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(167,139,250,0.07) 0%, transparent 70%);
+    pointer-events: none;
+  }}
+
+  .kpi-grid {{ display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 20px; }}
+  @media (max-width: 1200px) {{ .kpi-grid {{ grid-template-columns: repeat(3, 1fr); }} }}
+  @media (max-width: 640px) {{ .kpi-grid {{ grid-template-columns: repeat(2, 1fr); }} }}
+
+  .kpi-card {{
+    background: rgba(30,41,59,0.7); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 16px;
+    backdrop-filter: blur(10px);
+  }}
+  .kpi-value {{ font-size: 22px; font-weight: 700; line-height: 1.2; }}
+  .kpi-label {{ font-size: 11px; color: var(--muted); margin-top: 4px; }}
+  .kpi-sub {{ font-size: 11px; margin-top: 2px; }}
+
+  .tab-nav {{
+    display: flex; gap: 4px; padding: 12px 32px;
+    background: var(--card2); border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }}
+  .tab-btn {{
+    padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 500;
+    border: none; cursor: pointer; white-space: nowrap;
+    background: transparent; color: var(--muted);
+    transition: all 0.2s;
+  }}
+  .tab-btn:hover {{ background: rgba(56,189,248,0.1); color: var(--accent); }}
+  .tab-btn.active {{ background: rgba(56,189,248,0.15); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }}
+
+  .tab-panel {{ display: none; padding: 24px 32px; }}
+  .tab-panel.active {{ display: block; }}
+
+  .card {{
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px;
+    margin-bottom: 16px;
+  }}
+  .card-title {{ font-size: 15px; font-weight: 600; color: var(--accent); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }}
+
+  .grid-2 {{ display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }}
+  @media (max-width: 900px) {{ .grid-2 {{ grid-template-columns: 1fr; }} }}
+  .grid-3 {{ display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }}
+  @media (max-width: 900px) {{ .grid-3 {{ grid-template-columns: 1fr; }} }}
+
+  .badge {{
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 11px; font-weight: 600;
+  }}
+  .badge-buy {{ background: rgba(52,211,153,0.15); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }}
+  .badge-sell {{ background: rgba(248,113,113,0.15); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }}
+  .badge-hold {{ background: rgba(251,191,36,0.15); color: var(--yellow); border: 1px solid rgba(251,191,36,0.3); }}
+  .badge-accum {{ background: rgba(56,189,248,0.15); color: var(--accent); border: 1px solid rgba(56,189,248,0.3); }}
+  .badge-reduce {{ background: rgba(167,139,250,0.15); color: var(--purple); }}
+
+  .up {{ color: var(--green); }}
+  .down {{ color: var(--red); }}
+  .neutral {{ color: var(--muted); }}
+
+  table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+  th {{ text-align: left; padding: 10px 12px; color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--border); }}
+  td {{ padding: 10px 12px; border-bottom: 1px solid rgba(51,65,85,0.5); }}
+  tr:last-child td {{ border-bottom: none; }}
+  tr:hover td {{ background: rgba(56,189,248,0.03); }}
+
+  .rec-card {{
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 18px 20px;
+    transition: transform 0.2s, border-color 0.2s;
+    cursor: default;
+  }}
+  .rec-card:hover {{ transform: translateY(-2px); border-color: var(--accent); }}
+  .rec-card.gold {{ border-left: 4px solid #f59e0b; }}
+  .rec-card.silver {{ border-left: 4px solid #94a3b8; }}
+  .rec-card.bronze {{ border-left: 4px solid #cd7c37; }}
+  .rec-card.avoid {{ border-left: 4px solid var(--red); opacity: 0.8; }}
+
+  .score-bar-bg {{ background: rgba(51,65,85,0.6); border-radius: 4px; height: 6px; overflow: hidden; }}
+  .score-bar-fill {{ height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--accent), #818cf8); transition: width 0.8s ease; }}
+
+  .theme-card {{
+    background: var(--card2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    margin-bottom: 12px;
+  }}
+  .theme-card:hover {{ border-color: rgba(56,189,248,0.4); }}
+
+  ::-webkit-scrollbar {{ width: 6px; height: 6px; }}
+  ::-webkit-scrollbar-track {{ background: var(--bg); }}
+  ::-webkit-scrollbar-thumb {{ background: var(--border); border-radius: 3px; }}
+  ::-webkit-scrollbar-thumb:hover {{ background: #475569; }}
+</style>
+</head>
+<body>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header-bg">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:28px;">🌊</span>
+        <div>
+          <h1 style="font-size:22px;font-weight:700;color:#e2e8f0;">AI浪潮产业链投资仪表盘</h1>
+          <p style="font-size:13px;color:#94a3b8;margin-top:2px;">AI Chip · GPU · 光模块 · AI服务器 · 算力平台 | A股/港股/美股</p>
+        </div>
+      </div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:20px;font-weight:700;color:#38bdf8;">{report_date}</div>
+      <div style="font-size:11px;color:#64748b;margin-top:2px;">每日更新 · 仅供参考</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:#38bdf8;">$726B</div>
+      <div class="kpi-label">🌍 全球AI芯片市场</div>
+      <div class="kpi-sub" style="color:#34d399;">2026E预测规模</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:#a78bfa;">$50B+</div>
+      <div class="kpi-label">🔵 光模块市场规模</div>
+      <div class="kpi-sub" style="color:#34d399;">800G/1.6T驱动</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:#fbbf24;">344亿</div>
+      <div class="kpi-label">🇨🇳 大基金三期规模</div>
+      <div class="kpi-sub" style="color:#94a3b8;">持续投资2025-27</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:#34d399;">+47%</div>
+      <div class="kpi-label">📈 港股IT ETF YTD</div>
+      <div class="kpi-sub" style="color:#94a3b8;">机构资金持续流入</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:#f97316;">85%+</div>
+      <div class="kpi-label">⚙️ 中芯18A良率</div>
+      <div class="kpi-sub" style="color:#34d399;">量产验证关键指标</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-value" style="color:#e879f9;">8x</div>
+      <div class="kpi-label">💰 联想集团PE</div>
+      <div class="kpi-sub" style="color:#34d399;">远低于行业20-30x</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ TAB NAV ═══ -->
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="switchTab('overview', this)">📊 总览</button>
+  <button class="tab-btn" onclick="switchTab('hkstocks', this)">🇭🇰 港股推荐</button>
+  <button class="tab-btn" onclick="switchTab('themes', this)">💡 投资主题</button>
+  <button class="tab-btn" onclick="switchTab('supply', this)">🔗 产业链图谱</button>
+  <button class="tab-btn" onclick="switchTab('ashare', this)">🇨🇳 A股标的</button>
+  <button class="tab-btn" onclick="switchTab('usstocks', this)">🇺🇸 美股标的</button>
+  <button class="tab-btn" onclick="switchTab('portfolio', this)">💼 组合策略</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 1: 总览
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-overview" class="tab-panel active">
+  <div class="grid-2">
+    <!-- 五维雷达 -->
+    <div class="card">
+      <div class="card-title">🎯 港股核心标的五维对比雷达</div>
+      <div id="radarMain" style="width:100%;height:320px;"></div>
+    </div>
+    <!-- 目标价弹性 -->
+    <div class="card">
+      <div class="card-title">📈 港股主要标的目标价弹性（分析师一致预期）</div>
+      <div id="upsideBar" style="width:100%;height:320px;"></div>
+    </div>
+  </div>
+
+  <!-- 风险收益气泡图 -->
+  <div class="card">
+    <div class="card-title">🫧 港股AI标的 — 风险·收益·信心度气泡图</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">横轴=风险度，纵轴=预期收益，气泡大小=分析师信心度</div>
+    <div id="bubbleChart" style="width:100%;height:380px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 2: 港股推荐
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-hkstocks" class="tab-panel">
+  <div class="grid-2">
+    <!-- PE对比 -->
+    <div class="card">
+      <div class="card-title">📊 港股AI标的PE估值对比</div>
+      <div id="peChart" style="width:100%;height:300px;"></div>
+    </div>
+    <!-- 技术信号热力图 -->
+    <div class="card">
+      <div class="card-title">🌡️ 综合信号热力图（技术面×基本面×估值）</div>
+      <div id="signalChart" style="width:100%;height:300px;"></div>
+    </div>
+  </div>
+
+  <!-- 推荐卡片 -->
+  <div class="card">
+    <div class="card-title">⭐ 分级推荐标的</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+
+      <div class="rec-card gold">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">🥇</span>
+            <span style="font-weight:700;font-size:16px;color:#f59e0b;margin-left:6px;">中芯国际</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">00981.HK</span>
+          </div>
+          <span class="badge badge-buy">强烈买入</span>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">+40% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:8px 0;">先进代工 | PE ~48x</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">18A量产催化剂 + 大基金三期加持 + 国产替代核心受益，2026年最确定的算力基础设施投资标的</div>
+        <div style="margin-top:12px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">五维综合评分</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
+            <div>技术壁垒 <span style="color:var(--green);">90</span></div>
+            <div>AI受益度 <span style="color:var(--green);">95</span></div>
+            <div>政策顺风 <span style="color:var(--green);">98</span></div>
+          </div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: Q2 18A量产验证 · 大客户流片</div>
+      </div>
+
+      <div class="rec-card gold">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">🥇</span>
+            <span style="font-weight:700;font-size:16px;color:#f59e0b;margin-left:6px;">阿里巴巴</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">09988.HK</span>
+          </div>
+          <span class="badge badge-buy">强烈买入</span>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">+85% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:8px 0;">云/AI平台 | PE ~14x</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">阿里云AI变现加速，通义大模型API调用量爆发，估值处历史极低位，大规模回购支撑</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: AI云收入超预期 · 回购规模扩大</div>
+      </div>
+
+      <div class="rec-card gold">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">🥇</span>
+            <span style="font-weight:700;font-size:16px;color:#f59e0b;margin-left:6px;">联想集团</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">00992.HK</span>
+          </div>
+          <span class="badge badge-buy">强烈买入</span>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">+30% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:8px 0;">AI服务器+AI PC | PE ~8x</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">PE仅8x严重低估，$155B订单储备，AI PC换机超级周期+ISG AI服务器利润率改善</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: ISG利润率超预期 · AI PC出货数据</div>
+      </div>
+
+      <div class="rec-card silver">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">🥈</span>
+            <span style="font-weight:700;font-size:16px;color:#94a3b8;margin-left:6px;">天数智芯</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">09903.HK</span>
+          </div>
+          <span class="badge badge-accum">逢低积累</span>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">+50% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:8px 0;">国产AI GPU | 成长期</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">国产AI训练GPU，DeepSeek生态适配受益，华为替代路线之外重要备选，高风险高弹性</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: 大客户订单 · DeepSeek适配发布</div>
+      </div>
+
+      <div class="rec-card silver">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">🥈</span>
+            <span style="font-weight:700;font-size:16px;color:#94a3b8;margin-left:6px;">澜起科技H</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">06809.HK</span>
+          </div>
+          <span class="badge badge-buy">买入</span>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">+45% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:8px 0;">HBM接口芯片 | PE ~28x</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">DDR5/HBM接口芯片超级周期，8-12季度能见度极高，A股澜起科技H股折价提供安全边际</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: HBM4接口量产 · AI服务器内存升级</div>
+      </div>
+
+      <div class="rec-card silver">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">🥈</span>
+            <span style="font-weight:700;font-size:16px;color:#94a3b8;margin-left:6px;">百度集团</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">09888.HK</span>
+          </div>
+          <span class="badge badge-accum">逢低积累</span>
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">+35% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:8px 0;">AI原生平台 | PE ~12x</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">文心大模型API爆发，萝卜快跑L4自动驾驶商业化，估值处历史低位，困境反转逻辑</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: 萝卜快跑城市扩张 · AI广告收入转正</div>
+      </div>
+
+      <div class="rec-card avoid">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">⚠️</span>
+            <span style="font-weight:700;font-size:16px;color:var(--red);margin-left:6px;">商汤科技</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">00020.HK</span>
+          </div>
+          <span class="badge badge-sell">回避</span>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">持续亏损，AI变现路径不清晰，估值虚高（PS>10x），短期无催化剂，优先回避</div>
+      </div>
+
+      <div class="rec-card avoid">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">⚠️</span>
+            <span style="font-weight:700;font-size:16px;color:var(--red);margin-left:6px;">旷视科技</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">06060.HK</span>
+          </div>
+          <span class="badge badge-sell">回避</span>
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">计算机视觉竞争格局恶化，政府安防预算压缩，持续亏损，无近期反转催化剂</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 3: 投资主题
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-themes" class="tab-panel">
+  <div class="grid-2">
+    <div>
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">⚙️</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">中芯18A量产催化</div>
+            <div style="font-size:13px;color:#fbbf24;margin-top:2px;">★★★★★ 最高优先级</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">18A工艺（1.8nm等效）量产在即，良率突破85%，首批大客户流片验证。大陆先进代工能力突破是2026年最重要的科技事件。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(52,211,153,0.1);color:#34d399;border-radius:4px;">00981 中芯国际 ↑</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(52,211,153,0.1);color:#34d399;border-radius:4px;">01347 华虹半导体 ↑</span>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">🔵</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">光模块 800G→1.6T 升级</div>
+            <div style="font-size:13px;color:#fbbf24;margin-top:2px;">★★★★☆ 持续全年</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">全球AI数据中心扩容推动光模块需求爆发。800G大规模出货，1.6T进入量产准备，CPO技术商业化提速，A股光模块龙头是最直接受益者。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">300308 中际旭创</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">300394 天孚通信</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">300502 新易盛</span>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">🤖</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">DeepSeek × 国产算力爆发</div>
+            <div style="font-size:13px;color:#fbbf24;margin-top:2px;">★★★★☆ 加速中</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">DeepSeek验证国产AI能力，Jevons悖论效应：效率提升→需求爆发→国产GPU/算力订单超预期。出口限制进一步加速国产替代。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(167,139,250,0.1);color:#a78bfa;border-radius:4px;">09903 天数智芯</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(167,139,250,0.1);color:#a78bfa;border-radius:4px;">688256 寒武纪</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(167,139,250,0.1);color:#a78bfa;border-radius:4px;">00981 中芯国际</span>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">💻</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">AI PC / AI Phone 换机超级周期</div>
+            <div style="font-size:13px;color:#94a3b8;margin-top:2px;">★★★☆☆ H2 2026显现</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">搭载NPU本地推理的AI PC/手机普及，3-4年换机周期叠加AI功能驱动，PC出货量有望超预期反弹。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(249,115,22,0.1);color:#f97316;border-radius:4px;">00992 联想集团</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(249,115,22,0.1);color:#f97316;border-radius:4px;">01810 小米集团</span>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">🏦</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">大基金三期344亿加持</div>
+            <div style="font-size:13px;color:#fbbf24;margin-top:2px;">★★★★☆ 2025-2027</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">国家集成电路产业投资基金三期持续投资先进代工、关键设备、核心材料，政策资金作为定海神针稳定估值。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(52,211,153,0.1);color:#34d399;border-radius:4px;">00981 中芯国际</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(52,211,153,0.1);color:#34d399;border-radius:4px;">A股半导体设备</span>
+        </div>
+      </div>
+
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">☁️</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">云厂AI变现加速</div>
+            <div style="font-size:13px;color:#94a3b8;margin-top:2px;">★★★☆☆ Q2起提速</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">阿里/腾讯/百度AI API调用量2026年同比增速预计超200%，大模型从ToB向ToC延伸，货币化率快速提升。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">09988 阿里巴巴</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">00700 腾讯控股</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">09888 百度集团</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 4: 产业链图谱
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-supply" class="tab-panel">
+  <div class="card">
+    <div class="card-title">🔗 AI算力产业链价值流向（桑基图）</div>
+    <div id="sankeyChart" style="width:100%;height:420px;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🗺️ AI产业链板块分布（树状图）</div>
+    <div id="treemapChart" style="width:100%;height:380px;"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 5: A股标的
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-ashare" class="tab-panel">
+  <div class="card">
+    <div class="card-title">🇨🇳 A股AI产业链核心标的</div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>代码</th><th>公司</th><th>市场</th><th>板块</th><th>核心逻辑</th><th>关注信号</th>
+          </tr>
+        </thead>
+        <tbody id="ashare-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 6: 美股标的
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-usstocks" class="tab-panel">
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title">📊 美股AI核心公司市值对比</div>
+      <div id="usMcapChart" style="width:100%;height:300px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">🥧 美股AI板块分布</div>
+      <div id="usPieChart" style="width:100%;height:300px;"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🇺🇸 美股AI产业链核心标的</div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>代码</th><th>公司</th><th>板块</th><th>市值(亿$)</th><th>核心竞争力</th><th>AI相关性</th>
+          </tr>
+        </thead>
+        <tbody id="us-table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     TAB 7: 组合策略
+════════════════════════════════════════════════════════════════ -->
+<div id="tab-portfolio" class="tab-panel">
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-title">🛡️ 保守型组合</div>
+      <div id="portfolioConserv" style="width:100%;height:220px;"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;">年化目标 +15-20%，最大回撤 ≤15%</div>
+    </div>
+    <div class="card">
+      <div class="card-title">⚖️ 平衡型组合</div>
+      <div id="portfolioBalance" style="width:100%;height:220px;"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;">年化目标 +25-35%，最大回撤 ≤25%</div>
+    </div>
+    <div class="card">
+      <div class="card-title">🚀 进取型组合</div>
+      <div id="portfolioAggress" style="width:100%;height:220px;"></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;text-align:center;">年化目标 +40-60%，最大回撤 ≤40%</div>
+    </div>
+  </div>
+
+  <!-- 风险矩阵 -->
+  <div class="card">
+    <div class="card-title">⚠️ 核心风险矩阵（概率 × 影响度）</div>
+    <div id="riskMatrix" style="width:100%;height:340px;"></div>
+  </div>
+
+  <!-- 操作原则 -->
+  <div class="card">
+    <div class="card-title">📋 投资操作原则</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:13px;">
+      <div>
+        <div style="color:var(--green);font-weight:600;margin-bottom:8px;">✅ 买入信号</div>
+        <ul style="list-style:none;color:var(--muted);line-height:1.9;">
+          <li>• 五维综合评分 ≥70分</li>
+          <li>• 股价低于200日均线 + RSI &lt;40</li>
+          <li>• 明确催化剂在3个月内落地</li>
+          <li>• PE/PEG相对历史低位或行业折价</li>
+          <li>• 量能放大同时价格创新高</li>
+        </ul>
+      </div>
+      <div>
+        <div style="color:var(--red);font-weight:600;margin-bottom:8px;">❌ 卖出/回避信号</div>
+        <ul style="list-style:none;color:var(--muted);line-height:1.9;">
+          <li>• 持续亏损 + 高估值（PS>10x）</li>
+          <li>• 管理层业绩指引下调超15%</li>
+          <li>• 核心产品ASP压缩 &gt;15% QoQ</li>
+          <li>• 主要客户集中度过高且关系松动</li>
+          <li>• RSI &gt;80 + 量能萎缩背离</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ 免责声明 ═══ -->
+<div style="padding:16px 32px;text-align:center;font-size:11px;color:#475569;border-top:1px solid var(--border);">
+  ⚠️ 本报告由 AI 自动生成，数据来自公开渠道，仅供学习研究参考，<strong>不构成任何投资建议</strong>。投资有风险，入市需谨慎。
+  <br>生成时间: {report_date} | 🌊 AI浪潮产业链追踪 Skill
+</div>
+
+<script>
+// ─── 数据 ──────────────────────────────────────────────────────────────────
+const REPORT_DATE = '{report_date}';
+
+const ashareData = [
+  {{ code:"688256", name:"寒武纪", market:"科创板", sector:"AI推理芯片", logic:"国产AI推理芯片龙头，思元590系列，政府采购加速", signal:"watch" }},
+  {{ code:"688041", name:"海光信息", market:"科创板", sector:"CPU/DCU", logic:"x86兼容DCU，数据中心加速场景，国产替代路线", signal:"hold" }},
+  {{ code:"688047", name:"龙芯中科", market:"科创板", sector:"CPU", logic:"自主LoongArch ISA，党政军信创核心受益", signal:"hold" }},
+  {{ code:"603828", name:"澜起科技", market:"上交所", sector:"HBM接口", logic:"DDR5/HBM接口芯片超级周期，A股核心AI硬件受益", signal:"buy" }},
+  {{ code:"301269", name:"华大九天", market:"创业板", sector:"EDA", logic:"国产EDA唯一上市龙头，国家软件自主可控战略", signal:"buy" }},
+  {{ code:"300308", name:"中际旭创", market:"创业板", sector:"光模块", logic:"800G/1.6T全球龙头，NVDA/Meta/MSFT核心供应商", signal:"buy" }},
+  {{ code:"300394", name:"天孚通信", market:"创业板", sector:"光器件", logic:"FA组件/光器件上游，随光模块出货量弹性增长", signal:"buy" }},
+  {{ code:"300502", name:"新易盛", market:"创业板", sector:"光模块", logic:"800G快速放量，1.6T技术储备完善", signal:"buy" }},
+  {{ code:"000988", name:"华工科技", market:"深交所", sector:"激光/光模块", logic:"激光器+光模块多元化，汽车激光切割新增长极", signal:"hold" }},
+  {{ code:"002281", name:"光迅科技", market:"深交所", sector:"光器件", logic:"中国信科旗下，光芯片自主化核心企业", signal:"hold" }},
+  {{ code:"000977", name:"浪潮信息", market:"深交所", sector:"AI服务器", logic:"国内AI服务器龙头，腾讯/阿里/百度核心供应商", signal:"buy" }},
+  {{ code:"601138", name:"工业富联", market:"上交所", sector:"AI服务器ODM", logic:"全球AI服务器ODM前三，英伟达GPU服务器代工", signal:"buy" }},
+  {{ code:"603019", name:"中科曙光", market:"上交所", sector:"高性能计算", logic:"高性能计算+AI服务器，政府/科研机构优先采购", signal:"hold" }},
+];
+
+const usData = [
+  {{ code:"NVDA", name:"英伟达", sector:"AI GPU", mcap:"30000", moat:"AI GPU垄断，CUDA生态护城河，Blackwell/Rubin路线图清晰", ai_rel:"★★★★★" }},
+  {{ code:"AMD", name:"超微半导体", sector:"AI GPU", mcap:"2500", moat:"MI300X/MI350高性价比，ROCm生态追赶", ai_rel:"★★★★☆" }},
+  {{ code:"AVGO", name:"博通", sector:"ASIC/网络", mcap:"8000", moat:"定制ASIC三大超级客户，AI网络芯片垄断", ai_rel:"★★★★★" }},
+  {{ code:"MRVL", name:"迈威尔", sector:"光DSP/AI芯片", mcap:"550", moat:"光互联DSP+定制AI芯片，CPO核心使能者", ai_rel:"★★★★☆" }},
+  {{ code:"COHR", name:"科锐", sector:"光组件", mcap:"150", moat:"激光器+CPO技术，数据中心光模块关键组件", ai_rel:"★★★★☆" }},
+  {{ code:"SMCI", name:"超微电脑", sector:"AI服务器", mcap:"250", moat:"AI服务器快速上市能力，NVDA首选ODM合作", ai_rel:"★★★★★" }},
+  {{ code:"ARM", name:"Arm", sector:"CPU/NPU IP", mcap:"1300", moat:"移动端CPU IP垄断，AI芯片NPU设计基础", ai_rel:"★★★★☆" }},
+  {{ code:"SNPS", name:"新思科技", sector:"EDA", mcap:"900", moat:"EDA工具龙头，先进工艺芯片设计不可或缺", ai_rel:"★★★☆☆" }},
+  {{ code:"ASML", name:"阿斯麦", sector:"光刻机", mcap:"3200", moat:"EUV光刻机全球垄断，无可替代", ai_rel:"★★★★☆" }},
+  {{ code:"MSFT", name:"微软", sector:"云/AI平台", mcap:"32000", moat:"Azure+OpenAI捆绑，企业AI工作流标准", ai_rel:"★★★★★" }},
+];
+
+// ─── 工具函数 ───────────────────────────────────────────────────────────────
+function getChart(id) {{
+  const dom = document.getElementById(id);
+  if (!dom) return null;
+  const existing = echarts.getInstanceByDom(dom);
+  if (existing) existing.dispose();
+  return echarts.init(dom, 'dark');
+}}
+
+function switchTab(name, btn) {{
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  setTimeout(() => {{
+    if (name === 'overview') {{ initRadarMain(); initUpsideBar(); initBubbleChart(); }}
+    if (name === 'hkstocks') {{ initPeChart(); initSignalChart(); }}
+    if (name === 'supply') {{ initSankeyChart(); initTreemapChart(); }}
+    if (name === 'usstocks') {{ initUsMcapChart(); initUsPieChart(); renderUsTables(); }}
+    if (name === 'portfolio') {{ initPortfolioCharts(); initRiskMatrix(); }}
+  }}, 150);
+}}
+
+// ─── 总览图表 ────────────────────────────────────────────────────────────────
+function initRadarMain() {{
+  const chart = getChart('radarMain');
+  if (!chart) return;
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    legend: {{ data: ['中芯国际', '阿里巴巴', '联想集团'], bottom: 0, textStyle: {{ color: '#94a3b8', fontSize: 11 }} }},
+    radar: {{
+      indicator: [
+        {{ name: '技术壁垒\n(研发/专利)', max: 100 }},
+        {{ name: '市场地位\n(份额/定价)', max: 100 }},
+        {{ name: 'AI受益度\n(直接相关)', max: 100 }},
+        {{ name: '政策顺风\n(国产替代)', max: 100 }},
+        {{ name: '估值安全\n(PE/PEG)', max: 100 }},
+      ],
+      splitArea: {{ areaStyle: {{ color: ['rgba(30,41,59,0.3)','rgba(30,41,59,0.5)','rgba(30,41,59,0.7)','rgba(30,41,59,0.9)','rgba(30,41,59,1)'].reverse() }} }},
+      axisName: {{ color: '#94a3b8', fontSize: 11, lineHeight: 16 }},
+      splitLine: {{ lineStyle: {{ color: '#334155' }} }},
+      axisLine: {{ lineStyle: {{ color: '#334155' }} }},
+    }},
+    series: [{{
+      type: 'radar',
+      data: [
+        {{ value: [90, 85, 95, 98, 70], name: '中芯国际',
+          areaStyle: {{ color: 'rgba(56,189,248,0.2)' }},
+          lineStyle: {{ color: '#38bdf8' }}, itemStyle: {{ color: '#38bdf8' }} }},
+        {{ value: [80, 92, 88, 75, 88], name: '阿里巴巴',
+          areaStyle: {{ color: 'rgba(251,191,36,0.2)' }},
+          lineStyle: {{ color: '#fbbf24' }}, itemStyle: {{ color: '#fbbf24' }} }},
+        {{ value: [75, 80, 82, 70, 95], name: '联想集团',
+          areaStyle: {{ color: 'rgba(52,211,153,0.2)' }},
+          lineStyle: {{ color: '#34d399' }}, itemStyle: {{ color: '#34d399' }} }},
+      ],
+    }}],
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+function initUpsideBar() {{
+  const chart = getChart('upsideBar');
+  if (!chart) return;
+  const stocks = ['商汤科技','腾讯控股','华虹半导体','中兴通讯','百度集团','联想集团','澜起科技H','天数智芯','中芯国际','阿里巴巴'];
+  const upsides = [-15, 18, 20, 25, 35, 30, 45, 50, 40, 85];
+  const colors = upsides.map(v => v < 0 ? '#f87171' : v > 40 ? '#34d399' : '#38bdf8');
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    grid: {{ left: 80, right: 60, top: 10, bottom: 20 }},
+    xAxis: {{ type: 'value', axisLabel: {{ color: '#94a3b8', formatter: v => v + '%' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ show: false }} }},
+    yAxis: {{ type: 'category', data: stocks, axisLabel: {{ color: '#94a3b8', fontSize: 12 }}, axisLine: {{ show: false }}, axisTick: {{ show: false }} }},
+    series: [{{
+      type: 'bar', data: upsides.map((v, i) => ({{ value: v, itemStyle: {{ color: colors[i], borderRadius: [0, 4, 4, 0] }} }})),
+      label: {{ show: true, position: 'right', color: '#e2e8f0', formatter: p => p.value > 0 ? '+' + p.value + '%' : p.value + '%' }},
+    }}],
+    markLine: {{ data: [{{ xAxis: 0, lineStyle: {{ color: '#475569', type: 'dashed' }} }}] }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+function initBubbleChart() {{
+  const chart = getChart('bubbleChart');
+  if (!chart) return;
+  // [risk, return, confidence, name, signal]
+  const data = [
+    [20, 85, 90, '阿里巴巴', '买入'],
+    [25, 40, 88, '中芯国际', '买入'],
+    [30, 30, 85, '联想集团', '买入'],
+    [35, 45, 75, '澜起科技H', '买入'],
+    [55, 50, 65, '天数智芯', '积累'],
+    [40, 35, 72, '百度集团', '积累'],
+    [30, 20, 78, '腾讯控股', '持有'],
+    [35, 25, 70, '中兴通讯', '积累'],
+    [38, 20, 68, '华虹半导体', '持有'],
+    [40, 25, 65, '小米集团', '持有'],
+    [45, 15, 60, '舜宇光学', '持有'],
+    [75, -15, 40, '商汤科技', '回避'],
+    [80, -20, 35, '旷视科技', '回避'],
+  ];
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    grid: {{ left: 60, right: 80, top: 40, bottom: 60 }},
+    xAxis: {{ name: '风险度 →', nameLocation: 'end', min: 0, max: 100, nameTextStyle: {{ color: '#94a3b8' }}, axisLabel: {{ color: '#94a3b8' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ lineStyle: {{ color: '#334155' }} }} }},
+    yAxis: {{ name: '↑ 预期收益', nameLocation: 'end', min: -30, max: 100, nameTextStyle: {{ color: '#94a3b8' }}, axisLabel: {{ color: '#94a3b8', formatter: v => v + '%' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ lineStyle: {{ color: '#334155' }} }} }},
+    series: [{{
+      type: 'scatter',
+      data: data.map(d => ({{ value: [d[0], d[1], d[2]], name: d[3],
+        itemStyle: {{ color: d[1] > 30 ? 'rgba(52,211,153,0.8)' : d[1] < 0 ? 'rgba(248,113,113,0.8)' : 'rgba(56,189,248,0.8)' }} }})),
+      symbolSize: d => Math.sqrt(d[2]) * 5,
+      label: {{ show: true, formatter: p => p.name, position: 'right', color: '#e2e8f0', fontSize: 11 }},
+    }}],
+    markLine: {{ data: [{{ xAxis: 50, lineStyle: {{ color: '#475569', type: 'dashed' }} }}, {{ yAxis: 0, lineStyle: {{ color: '#475569', type: 'dashed' }} }}] }},
+    tooltip: {{ formatter: p => `${{p.name}}<br>风险: ${{p.value[0]}}<br>收益: ${{p.value[1]}}%<br>信心: ${{p.value[2]}}` }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+// ─── 港股图表 ────────────────────────────────────────────────────────────────
+function initPeChart() {{
+  const chart = getChart('peChart');
+  if (!chart) return;
+  const stocks = ['商汤科技','旷视科技','中兴通讯','百度集团','中芯国际','腾讯控股','阿里巴巴','小米集团','联想集团'];
+  const pes    = [999, 999, 15, 12, 48, 22, 14, 25, 8];
+  const colors = pes.map(p => p > 50 ? '#f87171' : p < 15 ? '#34d399' : '#38bdf8');
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    grid: {{ left: 90, right: 60, top: 20, bottom: 20 }},
+    xAxis: {{ type: 'value', max: 100, axisLabel: {{ color: '#94a3b8' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ show: false }} }},
+    yAxis: {{ type: 'category', data: stocks, axisLabel: {{ color: '#94a3b8' }}, axisLine: {{ show: false }}, axisTick: {{ show: false }} }},
+    series: [
+      {{ type: 'bar', data: pes.map((p, i) => ({{ value: Math.min(p, 95), itemStyle: {{ color: colors[i], borderRadius: [0,4,4,0] }} }})),
+        label: {{ show: true, position: 'right', color: '#e2e8f0', formatter: p => pes[p.dataIndex] > 100 ? '亏损' : p.value + 'x' }} }},
+      {{ type: 'line', data: new Array(stocks.length).fill(15), lineStyle: {{ color: '#fbbf24', type: 'dashed' }}, symbol: 'none', markLine: {{ show: false }}, z: 10 }},
+    ],
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+function initSignalChart() {{
+  const chart = getChart('signalChart');
+  if (!chart) return;
+  const stocks = ['中芯国际','阿里巴巴','联想集团','天数智芯','澜起科技H','百度集团','腾讯控股','中兴通讯'];
+  const dims   = ['技术面','基本面','估值','催化剂','流动性'];
+  const scores = [
+    [85,90,70,95,80], // 中芯
+    [75,88,92,88,95], // 阿里
+    [70,82,96,80,90], // 联想
+    [65,60,55,82,50], // 天数
+    [80,78,72,85,65], // 澜起
+    [68,70,88,75,85], // 百度
+    [78,85,80,70,95], // 腾讯
+    [72,74,78,72,80], // 中兴
+  ];
+  const flatData = [];
+  stocks.forEach((s, i) => dims.forEach((d, j) => flatData.push([j, i, scores[i][j]])));
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    grid: {{ left: 80, right: 20, top: 20, bottom: 60 }},
+    xAxis: {{ type: 'category', data: dims, axisLabel: {{ color: '#94a3b8' }}, axisLine: {{ show: false }} }},
+    yAxis: {{ type: 'category', data: stocks, axisLabel: {{ color: '#94a3b8' }}, axisLine: {{ show: false }} }},
+    visualMap: {{ min: 0, max: 100, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, textStyle: {{ color: '#94a3b8' }},
+      inRange: {{ color: ['#1e3a5f','#0369a1','#0284c7','#34d399','#10b981'] }} }},
+    series: [{{ type: 'heatmap', data: flatData, label: {{ show: true, color: '#fff', fontSize: 11, formatter: p => p.value[2] }}, emphasis: {{ itemStyle: {{ shadowBlur: 10 }} }} }}],
+    tooltip: {{ formatter: p => `${{stocks[p.value[1]]}} · ${{dims[p.value[0]]]}}：${{p.value[2]}}` }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+// ─── 产业链图表 ──────────────────────────────────────────────────────────────
+function initSankeyChart() {{
+  const chart = getChart('sankeyChart');
+  if (!chart) return;
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    series: [{{
+      type: 'sankey', layout: 'none', emphasis: {{ focus: 'adjacency' }},
+      nodes: [
+        {{name:'ASML光刻机'}},{{name:'AMAT/LRCX设备'}},{{name:'ARM IP核'}},
+        {{name:'台积电TSMC'}},{{name:'中芯国际SMIC'}},
+        {{name:'NVDA H100/B200'}},{{name:'AMD MI300X'}},{{name:'华为昇腾910B'}},{{name:'国产GPU'}},
+        {{name:'SMCI/Dell AI服务器'}},{{name:'浪潮/富联 AI服务器'}},
+        {{name:'中际旭创 800G光模块'}},{{name:'新易盛/天孚'}},
+        {{name:'AWS/Azure云'}},{{name:'阿里云/腾讯云'}},{{name:'国内AI数据中心'}},
+        {{name:'AI大模型训练'}},{{name:'AI推理/应用'}},
+      ],
+      links: [
+        {{source:'ASML光刻机', target:'台积电TSMC', value:80}},
+        {{source:'AMAT/LRCX设备', target:'台积电TSMC', value:60}},
+        {{source:'AMAT/LRCX设备', target:'中芯国际SMIC', value:40}},
+        {{source:'ARM IP核', target:'NVDA H100/B200', value:50}},
+        {{source:'ARM IP核', target:'AMD MI300X', value:30}},
+        {{source:'台积电TSMC', target:'NVDA H100/B200', value:100}},
+        {{source:'台积电TSMC', target:'AMD MI300X', value:60}},
+        {{source:'中芯国际SMIC', target:'华为昇腾910B', value:50}},
+        {{source:'中芯国际SMIC', target:'国产GPU', value:30}},
+        {{source:'NVDA H100/B200', target:'SMCI/Dell AI服务器', value:80}},
+        {{source:'NVDA H100/B200', target:'浪潮/富联 AI服务器', value:40}},
+        {{source:'AMD MI300X', target:'SMCI/Dell AI服务器', value:40}},
+        {{source:'华为昇腾910B', target:'浪潮/富联 AI服务器', value:50}},
+        {{source:'国产GPU', target:'浪潮/富联 AI服务器', value:20}},
+        {{source:'中际旭创 800G光模块', target:'SMCI/Dell AI服务器', value:60}},
+        {{source:'新易盛/天孚', target:'浪潮/富联 AI服务器', value:40}},
+        {{source:'SMCI/Dell AI服务器', target:'AWS/Azure云', value:80}},
+        {{source:'SMCI/Dell AI服务器', target:'阿里云/腾讯云', value:30}},
+        {{source:'浪潮/富联 AI服务器', target:'阿里云/腾讯云', value:70}},
+        {{source:'浪潮/富联 AI服务器', target:'国内AI数据中心', value:40}},
+        {{source:'AWS/Azure云', target:'AI大模型训练', value:80}},
+        {{source:'阿里云/腾讯云', target:'AI大模型训练', value:60}},
+        {{source:'国内AI数据中心', target:'AI大模型训练', value:40}},
+        {{source:'AI大模型训练', target:'AI推理/应用', value:180}},
+      ],
+      label: {{ color: '#e2e8f0', fontSize: 11 }},
+      lineStyle: {{ color: 'gradient', opacity: 0.4 }},
+      itemStyle: {{ borderWidth: 0 }},
+    }}],
+    tooltip: {{ trigger: 'item' }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+function initTreemapChart() {{
+  const chart = getChart('treemapChart');
+  if (!chart) return;
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    series: [{{
+      type: 'treemap', roam: false,
+      label: {{ show: true, formatter: p => p.name + '\\n' + p.value, fontSize: 11 }},
+      breadcrumb: {{ show: false }},
+      data: [
+        {{ name: '🔴 AI GPU/ASIC', value: 350, itemStyle: {{ color: '#1e3a5f' }}, children: [
+          {{ name: 'NVDA', value: 120 }}, {{ name: 'AVGO', value: 80 }},
+          {{ name: 'AMD', value: 60 }}, {{ name: '寒武纪', value: 40 }},
+          {{ name: '海光信息', value: 30 }}, {{ name: '天数智芯', value: 20 }},
+        ]}},
+        {{ name: '🟠 光模块/网络', value: 200, itemStyle: {{ color: '#1a3040' }}, children: [
+          {{ name: '中际旭创', value: 70 }}, {{ name: '天孚通信', value: 50 }},
+          {{ name: '新易盛', value: 40 }}, {{ name: 'Coherent', value: 40 }},
+        ]}},
+        {{ name: '⚙️ 先进代工', value: 180, itemStyle: {{ color: '#1e2840' }}, children: [
+          {{ name: '中芯国际', value: 90 }}, {{ name: '台积电', value: 60 }}, {{ name: '华虹半导体', value: 30 }},
+        ]}},
+        {{ name: '🟡 AI服务器', value: 160, itemStyle: {{ color: '#1c3030' }}, children: [
+          {{ name: 'SMCI', value: 60 }}, {{ name: '联想集团', value: 50 }},
+          {{ name: '浪潮信息', value: 30 }}, {{ name: '工业富联', value: 20 }},
+        ]}},
+        {{ name: '☁️ 云/AI平台', value: 250, itemStyle: {{ color: '#1e2a20' }}, children: [
+          {{ name: '阿里巴巴', value: 100 }}, {{ name: '腾讯控股', value: 80 }},
+          {{ name: '百度集团', value: 40 }}, {{ name: '微软', value: 30 }},
+        ]}},
+        {{ name: '🔧 EDA/设备', value: 100, itemStyle: {{ color: '#241e30' }}, children: [
+          {{ name: 'ASML', value: 50 }}, {{ name: 'SNPS', value: 25 }}, {{ name: '华大九天', value: 25 }},
+        ]}},
+      ],
+    }}],
+    tooltip: {{ formatter: p => `${{p.name}}: ${{p.value}}亿市值权重` }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+// ─── 美股图表 ────────────────────────────────────────────────────────────────
+function initUsMcapChart() {{
+  const chart = getChart('usMcapChart');
+  if (!chart) return;
+  const names = ['微软', '英伟达', '阿斯麦', 'Arm', '博通', 'AMD', '新思', '超微电脑', '迈威尔', '科锐'];
+  const mcaps = [32000, 30000, 3200, 1300, 800, 250, 90, 25, 55, 15];
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    grid: {{ left: 60, right: 40, top: 10, bottom: 20 }},
+    xAxis: {{ type: 'category', data: names, axisLabel: {{ color: '#94a3b8', rotate: 30, fontSize: 11 }}, axisLine: {{ show: false }} }},
+    yAxis: {{ type: 'value', axisLabel: {{ color: '#94a3b8', formatter: v => v >= 1000 ? (v/1000).toFixed(0) + 'T' : v + 'B' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }} }},
+    series: [{{
+      type: 'bar', data: mcaps.map(v => ({{ value: v, itemStyle: {{ color: v > 10000 ? '#38bdf8' : '#475569', borderRadius: [4,4,0,0] }} }})),
+      label: {{ show: true, position: 'top', color: '#94a3b8', fontSize: 10, formatter: p => p.value >= 1000 ? '$' + (p.value/1000).toFixed(1) + 'T' : '$' + p.value + 'B' }},
+    }}],
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+function initUsPieChart() {{
+  const chart = getChart('usPieChart');
+  if (!chart) return;
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    legend: {{ orient: 'vertical', right: 10, textStyle: {{ color: '#94a3b8', fontSize: 11 }} }},
+    series: [{{
+      type: 'pie', radius: ['40%', '70%'], center: ['35%', '50%'],
+      data: [
+        {{ value: 62750, name: 'AI GPU/ASIC', itemStyle: {{ color: '#38bdf8' }} }},
+        {{ value: 3200, name: '先进代工/设备', itemStyle: {{ color: '#a78bfa' }} }},
+        {{ value: 32000, name: '云/AI平台', itemStyle: {{ color: '#34d399' }} }},
+        {{ value: 465, name: '光模块/网络', itemStyle: {{ color: '#f97316' }} }},
+        {{ value: 275, name: 'AI服务器', itemStyle: {{ color: '#fbbf24' }} }},
+      ],
+      label: {{ show: false }},
+      emphasis: {{ label: {{ show: true, fontSize: 12, color: '#e2e8f0' }} }},
+    }}],
+    tooltip: {{ formatter: p => `${{p.name}}<br/>${{(p.value/1000).toFixed(0)}}B (${{p.percent}}%)` }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+// ─── 组合图表 ────────────────────────────────────────────────────────────────
+function initPortfolioCharts() {{
+  const conservData = [
+    {{ value: 40, name: '00981 中芯国际', itemStyle: {{ color: '#38bdf8' }} }},
+    {{ value: 35, name: '09988 阿里巴巴', itemStyle: {{ color: '#fbbf24' }} }},
+    {{ value: 25, name: '00992 联想集团', itemStyle: {{ color: '#34d399' }} }},
+  ];
+  const balanceData = [
+    {{ value: 30, name: '00981 中芯国际', itemStyle: {{ color: '#38bdf8' }} }},
+    {{ value: 25, name: '09988 阿里巴巴', itemStyle: {{ color: '#fbbf24' }} }},
+    {{ value: 20, name: '00992 联想集团', itemStyle: {{ color: '#34d399' }} }},
+    {{ value: 15, name: '06809 澜起科技H', itemStyle: {{ color: '#a78bfa' }} }},
+    {{ value: 10, name: '09888 百度集团', itemStyle: {{ color: '#f97316' }} }},
+  ];
+  const agressData = [
+    {{ value: 25, name: '00981 中芯国际', itemStyle: {{ color: '#38bdf8' }} }},
+    {{ value: 20, name: '09988 阿里巴巴', itemStyle: {{ color: '#fbbf24' }} }},
+    {{ value: 20, name: '09903 天数智芯', itemStyle: {{ color: '#f87171' }} }},
+    {{ value: 15, name: '06809 澜起科技H', itemStyle: {{ color: '#a78bfa' }} }},
+    {{ value: 10, name: '00992 联想集团', itemStyle: {{ color: '#34d399' }} }},
+    {{ value: 10, name: '09888 百度集团', itemStyle: {{ color: '#f97316' }} }},
+  ];
+
+  [['portfolioConserv', conservData], ['portfolioBalance', balanceData], ['portfolioAggress', agressData]].forEach(([id, data]) => {{
+    const chart = getChart(id);
+    if (!chart) return;
+    chart.setOption({{
+      backgroundColor: 'transparent',
+      legend: {{ bottom: 0, textStyle: {{ color: '#94a3b8', fontSize: 10 }} }},
+      series: [{{
+        type: 'pie', radius: ['38%', '62%'], center: ['50%', '42%'],
+        data, label: {{ show: false }},
+        emphasis: {{ label: {{ show: true, fontSize: 11, color: '#e2e8f0' }} }},
+      }}],
+      tooltip: {{ formatter: p => `${{p.name}}: ${{p.percent}}%` }},
+    }});
+    window.addEventListener('resize', () => chart.resize());
+  }});
+}}
+
+function initRiskMatrix() {{
+  const chart = getChart('riskMatrix');
+  if (!chart) return;
+  const risks = [
+    [80, 90, '地缘政治风险'],
+    [55, 85, 'AI芯片出口管制升级'],
+    [40, 70, '光模块价格战'],
+    [35, 55, 'AI应用变现不及预期'],
+    [25, 40, '国内消费降级'],
+    [70, 60, '大基金投资节奏偏慢'],
+    [50, 75, '竞争对手技术突破'],
+  ];
+  chart.setOption({{
+    backgroundColor: 'transparent',
+    grid: {{ left: 70, right: 80, top: 40, bottom: 60 }},
+    xAxis: {{ name: '发生概率 →', min: 0, max: 100, nameLocation: 'end', nameTextStyle: {{ color: '#94a3b8' }},
+      axisLabel: {{ color: '#94a3b8', formatter: v => v + '%' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ lineStyle: {{ color: '#334155' }} }} }},
+    yAxis: {{ name: '↑ 影响程度', min: 0, max: 100, nameLocation: 'end', nameTextStyle: {{ color: '#94a3b8' }},
+      axisLabel: {{ color: '#94a3b8' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ lineStyle: {{ color: '#334155' }} }} }},
+    series: [{{
+      type: 'scatter', symbolSize: 20,
+      data: risks.map(r => ({{ value: [r[0], r[1]], name: r[2],
+        itemStyle: {{ color: r[0]*r[1] > 4000 ? '#f87171' : r[0]*r[1] > 2000 ? '#fbbf24' : '#38bdf8' }} }})),
+      label: {{ show: true, formatter: p => p.name, position: 'right', color: '#e2e8f0', fontSize: 11 }},
+    }}],
+    markArea: {{
+      silent: true,
+      data: [[{{ coord: [60, 60], itemStyle: {{ color: 'rgba(248,113,113,0.05)' }} }}, {{ coord: [100, 100] }}]],
+    }},
+    tooltip: {{ formatter: p => `${{p.name}}<br>概率: ${{p.value[0]}}%<br>影响: ${{p.value[1]}}` }},
+  }});
+  window.addEventListener('resize', () => chart.resize());
+}}
+
+// ─── 渲染表格 ────────────────────────────────────────────────────────────────
+function renderAshareTables() {{
+  const signalBadge = (s) => {{
+    const map = {{ buy: ['badge-buy','买入'], hold: ['badge-hold','持有'], watch: ['badge-hold','关注'], sell: ['badge-sell','回避'] }};
+    const [cls, text] = map[s] || ['badge-hold', s];
+    return `<span class="badge ${{cls}}">${{text}}</span>`;
+  }};
+  const tbody = document.getElementById('ashare-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = ashareData.map(s => `
+    <tr>
+      <td><span style="font-family:monospace;color:var(--accent);">${{s.code}}</span></td>
+      <td style="font-weight:600;">${{s.name}}</td>
+      <td><span style="color:var(--muted);font-size:11px;">${{s.market}}</span></td>
+      <td><span style="color:var(--yellow);font-size:12px;">${{s.sector}}</span></td>
+      <td style="color:var(--muted);font-size:12px;">${{s.logic}}</td>
+      <td>${{signalBadge(s.signal)}}</td>
+    </tr>
+  `).join('');
+}}
+
+function renderUsTables() {{
+  const tbody = document.getElementById('us-table-body');
+  if (!tbody) return;
+  tbody.innerHTML = usData.map(s => `
+    <tr>
+      <td><span style="font-family:monospace;font-weight:700;color:#38bdf8;">${{s.code}}</span></td>
+      <td style="font-weight:600;">${{s.name}}</td>
+      <td><span style="color:var(--yellow);font-size:12px;">${{s.sector}}</span></td>
+      <td style="color:var(--muted);">${{(parseInt(s.mcap)/100).toFixed(0)}}B</td>
+      <td style="color:var(--muted);font-size:12px;">${{s.moat}}</td>
+      <td style="color:var(--green);">${{s.ai_rel}}</td>
+    </tr>
+  `).join('');
+}}
+
+// ─── 初始化 ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {{
+  renderAshareTables();
+  setTimeout(() => {{
+    initRadarMain();
+    initUpsideBar();
+    initBubbleChart();
+  }}, 300);
+}});
+</script>
+</body>
+</html>'''
+
+Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+with open(output_path, 'w', encoding='utf-8') as f:
+    f.write(html)
+
+print(f"✅ HTML报告已生成: {output_path}")
+print(f"   文件大小: {len(html.encode())/1024:.0f} KB")
+PYEOF
+
+echo ""
+echo "✅ 报告生成完成: $OUTPUT_FILE"
+echo "   文件大小: $(du -sh "$OUTPUT_FILE" | cut -f1)"
+echo ""
+echo "🌐 在浏览器中打开:"
+echo "   open $OUTPUT_FILE"

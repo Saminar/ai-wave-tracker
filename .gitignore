@@ -1,0 +1,19 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# 临时产物（运行时生成的报告/数据）
+output/
+reports/
+*.tmp
+*.log
+
+# IDE
+.vscode/
+.idea/
