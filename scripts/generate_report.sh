@@ -79,12 +79,14 @@ html = f'''<!DOCTYPE html>
     position: absolute; top: -80px; left: 20%; width: 400px; height: 400px;
     background: radial-gradient(circle, rgba(56,189,248,0.08) 0%, transparent 70%);
     pointer-events: none;
+    
   }}
   .header-bg::after {{
     content: '';
     position: absolute; bottom: -60px; right: 10%; width: 300px; height: 300px;
     background: radial-gradient(circle, rgba(167,139,250,0.07) 0%, transparent 70%);
     pointer-events: none;
+    
   }}
 
   .kpi-grid {{ display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-top: 20px; }}
