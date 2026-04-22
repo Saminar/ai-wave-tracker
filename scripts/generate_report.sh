@@ -100,7 +100,7 @@ html = f'''<!DOCTYPE html>
   .kpi-label {{ font-size: 11px; color: var(--muted); margin-top: 4px; }}
   .kpi-sub {{ font-size: 11px; margin-top: 2px; }}
 
-  .tab-nav {{
+  .tab-nav {{ position: relative; z-index: 10;
     display: flex; gap: 4px; padding: 12px 32px;
     background: var(--card2); border-bottom: 1px solid var(--border);
     overflow-x: auto;
