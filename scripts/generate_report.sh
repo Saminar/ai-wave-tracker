@@ -929,43 +929,103 @@ function initSankeyChart() {{
     backgroundColor: 'transparent',
     series: [{{
       type: 'sankey', layout: 'none', emphasis: {{ focus: 'adjacency' }},
+      nodeWidth: 14, nodeGap: 10,
       nodes: [
-        {{name:'ASML光刻机'}},{{name:'AMAT/LRCX设备'}},{{name:'ARM IP核'}},
-        {{name:'台积电TSMC'}},{{name:'中芯国际SMIC'}},
-        {{name:'NVDA H100/B200'}},{{name:'AMD MI300X'}},{{name:'华为昇腾910B'}},{{name:'国产GPU'}},
-        {{name:'SMCI/Dell AI服务器'}},{{name:'浪潮/富联 AI服务器'}},
-        {{name:'中际旭创 800G光模块'}},{{name:'新易盛/天孚'}},
-        {{name:'AWS/Azure云'}},{{name:'阿里云/腾讯云'}},{{name:'国内AI数据中心'}},
-        {{name:'AI大模型训练'}},{{name:'AI推理/应用'}},
+        // ── L0: 原材料/基础 ──
+        {{name:'半导体材料\\n(雅克/南大光电)'}},
+        // ── L1: 设备/EDA ──
+        {{name:'ASML 光刻机'}},
+        {{name:'AMAT/LRCX/KLAC 设备'}},
+        {{name:'北方华创/中微 国产设备'}},
+        {{name:'EDA\\n(SNPS/华大九天)'}},
+        {{name:'ARM IP核'}},
+        // ── L2: 代工/封装 ──
+        {{name:'台积电 CoWoS先进封装'}},
+        {{name:'中芯国际 SMIC'}},
+        {{name:'先进封装\\n(长电/通富微电)'}},
+        // ── L3: 存储 ──
+        {{name:'HBM存储\\n(美光MU)'}},
+        {{name:'DRAM/NOR\\n(兆易/君正)'}},
+        // ── L4: 芯片 ──
+        {{name:'NVDA Blackwell GPU'}},
+        {{name:'AMD MI300X'}},
+        {{name:'ASIC芯片\\n(AVGO/MRVL)'}},
+        {{name:'华为昇腾 910B'}},
+        {{name:'国产GPU/AI芯片'}},
+        // ── L5: 服务器 + 网络互连 + 电源散热 ──
+        {{name:'SMCI/Dell AI服务器'}},
+        {{name:'浪潮/富联 AI服务器'}},
+        {{name:'光模块\\n(旭创/新易盛)'}},
+        {{name:'网络互连\\n(思科/锐捷)'}},
+        {{name:'电源散热\\n(VRT/申菱)'}},
+        // ── L6: 云/数据中心 ──
+        {{name:'AWS/Azure/GCP'}},
+        {{name:'阿里云/腾讯云'}},
+        {{name:'国内AI数据中心'}},
+        // ── L7: AI应用 ──
+        {{name:'AI大模型训练'}},
+        {{name:'AI推理\\n(谷歌/Meta/讯飞)'}},
       ],
       links: [
-        {{source:'ASML光刻机', target:'台积电TSMC', value:80}},
-        {{source:'AMAT/LRCX设备', target:'台积电TSMC', value:60}},
-        {{source:'AMAT/LRCX设备', target:'中芯国际SMIC', value:40}},
-        {{source:'ARM IP核', target:'NVDA H100/B200', value:50}},
+        // 材料 → 设备
+        {{source:'半导体材料\\n(雅克/南大光电)', target:'ASML 光刻机', value:20}},
+        {{source:'半导体材料\\n(雅克/南大光电)', target:'AMAT/LRCX/KLAC 设备', value:30}},
+        {{source:'半导体材料\\n(雅克/南大光电)', target:'北方华创/中微 国产设备', value:20}},
+        // 设备/EDA → 代工
+        {{source:'ASML 光刻机', target:'台积电 CoWoS先进封装', value:80}},
+        {{source:'AMAT/LRCX/KLAC 设备', target:'台积电 CoWoS先进封装', value:60}},
+        {{source:'AMAT/LRCX/KLAC 设备', target:'中芯国际 SMIC', value:35}},
+        {{source:'北方华创/中微 国产设备', target:'中芯国际 SMIC', value:30}},
+        {{source:'EDA\\n(SNPS/华大九天)', target:'台积电 CoWoS先进封装', value:20}},
+        {{source:'EDA\\n(SNPS/华大九天)', target:'中芯国际 SMIC', value:15}},
+        {{source:'ARM IP核', target:'NVDA Blackwell GPU', value:50}},
         {{source:'ARM IP核', target:'AMD MI300X', value:30}},
-        {{source:'台积电TSMC', target:'NVDA H100/B200', value:100}},
-        {{source:'台积电TSMC', target:'AMD MI300X', value:60}},
-        {{source:'中芯国际SMIC', target:'华为昇腾910B', value:50}},
-        {{source:'中芯国际SMIC', target:'国产GPU', value:30}},
-        {{source:'NVDA H100/B200', target:'SMCI/Dell AI服务器', value:80}},
-        {{source:'NVDA H100/B200', target:'浪潮/富联 AI服务器', value:40}},
+        {{source:'ARM IP核', target:'ASIC芯片\\n(AVGO/MRVL)', value:20}},
+        // 代工 → 封装
+        {{source:'台积电 CoWoS先进封装', target:'先进封装\\n(长电/通富微电)', value:40}},
+        // 代工/封装 → 芯片
+        {{source:'台积电 CoWoS先进封装', target:'NVDA Blackwell GPU', value:100}},
+        {{source:'台积电 CoWoS先进封装', target:'AMD MI300X', value:60}},
+        {{source:'台积电 CoWoS先进封装', target:'ASIC芯片\\n(AVGO/MRVL)', value:40}},
+        {{source:'中芯国际 SMIC', target:'华为昇腾 910B', value:50}},
+        {{source:'中芯国际 SMIC', target:'国产GPU/AI芯片', value:30}},
+        {{source:'先进封装\\n(长电/通富微电)', target:'NVDA Blackwell GPU', value:20}},
+        {{source:'先进封装\\n(长电/通富微电)', target:'国产GPU/AI芯片', value:20}},
+        // 存储 → 服务器
+        {{source:'HBM存储\\n(美光MU)', target:'NVDA Blackwell GPU', value:60}},
+        {{source:'HBM存储\\n(美光MU)', target:'AMD MI300X', value:30}},
+        {{source:'DRAM/NOR\\n(兆易/君正)', target:'浪潮/富联 AI服务器', value:25}},
+        {{source:'DRAM/NOR\\n(兆易/君正)', target:'SMCI/Dell AI服务器', value:15}},
+        // 芯片 → 服务器
+        {{source:'NVDA Blackwell GPU', target:'SMCI/Dell AI服务器', value:80}},
+        {{source:'NVDA Blackwell GPU', target:'浪潮/富联 AI服务器', value:40}},
         {{source:'AMD MI300X', target:'SMCI/Dell AI服务器', value:40}},
-        {{source:'华为昇腾910B', target:'浪潮/富联 AI服务器', value:50}},
-        {{source:'国产GPU', target:'浪潮/富联 AI服务器', value:20}},
-        {{source:'中际旭创 800G光模块', target:'SMCI/Dell AI服务器', value:60}},
-        {{source:'新易盛/天孚', target:'浪潮/富联 AI服务器', value:40}},
-        {{source:'SMCI/Dell AI服务器', target:'AWS/Azure云', value:80}},
+        {{source:'ASIC芯片\\n(AVGO/MRVL)', target:'SMCI/Dell AI服务器', value:30}},
+        {{source:'华为昇腾 910B', target:'浪潮/富联 AI服务器', value:50}},
+        {{source:'国产GPU/AI芯片', target:'浪潮/富联 AI服务器', value:20}},
+        // 光模块 → 服务器
+        {{source:'光模块\\n(旭创/新易盛)', target:'SMCI/Dell AI服务器', value:50}},
+        {{source:'光模块\\n(旭创/新易盛)', target:'浪潮/富联 AI服务器', value:30}},
+        // 网络互连 → 服务器
+        {{source:'网络互连\\n(思科/锐捷)', target:'SMCI/Dell AI服务器', value:30}},
+        {{source:'网络互连\\n(思科/锐捷)', target:'浪潮/富联 AI服务器', value:20}},
+        // 电源散热 → 服务器
+        {{source:'电源散热\\n(VRT/申菱)', target:'SMCI/Dell AI服务器', value:25}},
+        {{source:'电源散热\\n(VRT/申菱)', target:'浪潮/富联 AI服务器', value:20}},
+        // 服务器 → 云
+        {{source:'SMCI/Dell AI服务器', target:'AWS/Azure/GCP', value:100}},
         {{source:'SMCI/Dell AI服务器', target:'阿里云/腾讯云', value:30}},
         {{source:'浪潮/富联 AI服务器', target:'阿里云/腾讯云', value:70}},
-        {{source:'浪潮/富联 AI服务器', target:'国内AI数据中心', value:40}},
-        {{source:'AWS/Azure云', target:'AI大模型训练', value:80}},
-        {{source:'阿里云/腾讯云', target:'AI大模型训练', value:60}},
-        {{source:'国内AI数据中心', target:'AI大模型训练', value:40}},
-        {{source:'AI大模型训练', target:'AI推理/应用', value:180}},
+        {{source:'浪潮/富联 AI服务器', target:'国内AI数据中心', value:50}},
+        // 云 → AI训练
+        {{source:'AWS/Azure/GCP', target:'AI大模型训练', value:100}},
+        {{source:'阿里云/腾讯云', target:'AI大模型训练', value:70}},
+        {{source:'国内AI数据中心', target:'AI大模型训练', value:50}},
+        // 训练 → 推理/应用
+        {{source:'AI大模型训练', target:'AI推理\\n(谷歌/Meta/讯飞)', value:220}},
       ],
-      label: {{ color: '#e2e8f0', fontSize: 11 }},
-      lineStyle: {{ color: 'gradient', opacity: 0.4 }},
+      label: {{ color: '#e2e8f0', fontSize: 10 }},
+      lineStyle: {{ color: 'gradient', opacity: 0.35 }},
       itemStyle: {{ borderWidth: 0 }},
     }}],
     tooltip: {{ trigger: 'item' }},
@@ -1006,6 +1066,26 @@ function initTreemapChart() {{
         {{ name: '🔧 EDA/设备', value: 100, itemStyle: {{ color: '#241e30' }}, children: [
           {{ name: 'ASML', value: 50 }}, {{ name: 'SNPS', value: 25 }}, {{ name: '华大九天', value: 25 }},
         ]}},
+        {{ name: '💾 存储/HBM', value: 120, itemStyle: {{ color: '#1a2a3a' }}, children: [
+          {{ name: '美光MU', value: 70 }}, {{ name: '兆易创新', value: 30 }}, {{ name: '北京君正', value: 20 }},
+        ]}},
+        {{ name: '🏭 半导体设备', value: 110, itemStyle: {{ color: '#2a1e30' }}, children: [
+          {{ name: 'AMAT', value: 40 }}, {{ name: 'LRCX', value: 30 }}, {{ name: 'KLAC', value: 20 }},
+          {{ name: '北方华创', value: 15 }}, {{ name: '中微公司', value: 5 }},
+        ]}},
+        {{ name: '📦 先进封装', value: 90, itemStyle: {{ color: '#2a2a1a' }}, children: [
+          {{ name: '长电科技', value: 40 }}, {{ name: '通富微电', value: 30 }}, {{ name: '华天科技', value: 20 }},
+        ]}},
+        {{ name: '🌐 网络互连', value: 80, itemStyle: {{ color: '#1a302a' }}, children: [
+          {{ name: 'Cisco', value: 50 }}, {{ name: '锐捷网络', value: 30 }},
+        ]}},
+        {{ name: '⚡ 电源散热', value: 60, itemStyle: {{ color: '#2a2010' }}, children: [
+          {{ name: 'VRT', value: 30 }}, {{ name: '英威腾', value: 15 }}, {{ name: '申菱环境', value: 15 }},
+        ]}},
+        {{ name: '🤖 AI应用', value: 180, itemStyle: {{ color: '#102a20' }}, children: [
+          {{ name: '谷歌', value: 70 }}, {{ name: 'Meta', value: 60 }},
+          {{ name: '科大讯飞', value: 30 }}, {{ name: '昆仑万维', value: 20 }},
+        ]}},
       ],
     }}],
     tooltip: {{ formatter: p => `${{p.name}}: ${{p.value}}亿市值权重` }},
@@ -1017,8 +1097,8 @@ function initTreemapChart() {{
 function initUsMcapChart() {{
   const chart = getChart('usMcapChart');
   if (!chart) return;
-  const names = ['微软', '英伟达', '阿斯麦', 'Arm', '博通', 'AMD', '新思', '超微电脑', '迈威尔', '科锐'];
-  const mcaps = [32000, 30000, 3200, 1300, 800, 250, 90, 25, 55, 15];
+  const names = ['微软', '谷歌', 'Meta', '英伟达', '台积电', '阿斯麦', 'Arm', '博通', '美光', '思科', 'AMD', 'VRT', 'SNPS', '超微电脑', 'AMAT', 'LRCX', 'KLAC', '迈威尔', '科锐'];
+  const mcaps = [32000, 20000, 15000, 30000, 9000, 3200, 1300, 8000, 1000, 2000, 2500, 400, 900, 250, 1500, 1000, 900, 550, 150];
   chart.setOption({{
     backgroundColor: 'transparent',
     grid: {{ left: 60, right: 40, top: 10, bottom: 20 }},
@@ -1042,9 +1122,12 @@ function initUsPieChart() {{
       type: 'pie', radius: ['40%', '70%'], center: ['35%', '50%'],
       data: [
         {{ value: 62750, name: 'AI GPU/ASIC', itemStyle: {{ color: '#38bdf8' }} }},
-        {{ value: 3200, name: '先进代工/设备', itemStyle: {{ color: '#a78bfa' }} }},
-        {{ value: 32000, name: '云/AI平台', itemStyle: {{ color: '#34d399' }} }},
-        {{ value: 465, name: '光模块/网络', itemStyle: {{ color: '#f97316' }} }},
+        {{ value: 13400, name: '先进代工/封装', itemStyle: {{ color: '#a78bfa' }} }},
+        {{ value: 3400, name: '半导体设备', itemStyle: {{ color: '#c084fc' }} }},
+        {{ value: 67000, name: '云/AI平台', itemStyle: {{ color: '#34d399' }} }},
+        {{ value: 1000, name: '存储/HBM', itemStyle: {{ color: '#60a5fa' }} }},
+        {{ value: 2150, name: '网络互连', itemStyle: {{ color: '#f97316' }} }},
+        {{ value: 400, name: '电源散热', itemStyle: {{ color: '#fb923c' }} }},
         {{ value: 275, name: 'AI服务器', itemStyle: {{ color: '#fbbf24' }} }},
       ],
       label: {{ show: false }},
