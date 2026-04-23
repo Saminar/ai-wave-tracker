@@ -32,15 +32,70 @@ ANALYSIS_DATA="{}"
 [ -f "$ANALYSIS_JSON" ] && ANALYSIS_DATA=$(cat "$ANALYSIS_JSON")
 
 # ─── 生成HTML报告 ─────────────────────────────────────────────────────────────
-python3 - "$OUTPUT_FILE" "$REPORT_DATE" << 'PYEOF'
+python3 - "$OUTPUT_FILE" "$REPORT_DATE" "$ANALYSIS_JSON" << 'PYEOF'
 import sys
 import json
 from pathlib import Path
 
 output_path = sys.argv[1]
 report_date = sys.argv[2]
+analysis_json_path = sys.argv[3] if len(sys.argv) > 3 else '/tmp/aiwave_analysis.json'
 
-# 从 shell 变量读取（通过 stdin 传入更简洁的方式：直接内嵌数据模板）
+# 读取 analysis.json，提取港股推荐数据用于图表注入
+try:
+    with open(analysis_json_path, 'r', encoding='utf-8') as f:
+        analysis = json.load(f)
+    hk_recs = analysis.get('hk_recommendations', [])
+except Exception:
+    hk_recs = []
+
+# ── 从 hk_recs 构建三个图表的数据 ──
+# 过滤掉 sell 信号且无目标价的标的（如商汤）
+chart_recs = [r for r in hk_recs if r.get('upside_pct') is not None]
+
+# 雷达图：取前5个（tier1+tier2 中 buy/accumulate）
+radar_recs = [r for r in chart_recs if r.get('signal') in ('buy','accumulate')][:5]
+radar_names = json.dumps([r['name'] for r in radar_recs], ensure_ascii=False)
+radar_colors = ['#38bdf8','#fbbf24','#34d399','#a78bfa','#fb923c']
+radar_series_js = ''
+for idx, r in enumerate(radar_recs):
+    sc = r.get('scores', {})
+    vals = [
+        sc.get('tech_moat', 70),
+        sc.get('market_position', 70),
+        sc.get('ai_exposure', 70),
+        sc.get('policy_tailwind', 70),
+        sc.get('valuation_safety', 70),
+    ]
+    col = radar_colors[idx % len(radar_colors)]
+    radar_series_js += f'''        {{ value: {vals}, name: '{r['name']}',
+          areaStyle: {{ color: '{col}33' }},
+          lineStyle: {{ color: '{col}' }}, itemStyle: {{ color: '{col}' }} }},\n'''
+
+# 弹性柱状图：所有 chart_recs 按 upside_pct 升序
+sorted_recs = sorted(chart_recs, key=lambda r: r.get('upside_pct', 0))
+upside_names = json.dumps([r['name'] for r in sorted_recs], ensure_ascii=False)
+upside_vals  = json.dumps([round(r.get('upside_pct', 0), 1) for r in sorted_recs])
+
+# 气泡图：风险 = 100 - valuation_safety；收益 = upside_pct；信心 = (tech_moat+ai_exposure)/2
+bubble_data_js = ''
+signal_map = {'buy':'买入','accumulate':'积累','hold':'持有','sell':'回避'}
+for r in chart_recs:
+    sc = r.get('scores', {})
+    risk = 100 - sc.get('valuation_safety', 50)
+    ret  = round(r.get('upside_pct', 0), 1)
+    conf = round((sc.get('tech_moat', 70) + sc.get('ai_exposure', 70)) / 2)
+    sig  = signal_map.get(r.get('signal','hold'), r.get('signal','持有'))
+    bubble_data_js += f"    [{risk}, {ret}, {conf}, '{r['name']}', '{sig}'],\n"
+# 追加 sell 标的
+for r in hk_recs:
+    if r.get('signal') == 'sell':
+        sc = r.get('scores', {})
+        risk = 100 - sc.get('valuation_safety', 20)
+        ret  = -15
+        conf = round((sc.get('tech_moat', 60) + sc.get('ai_exposure', 70)) / 2)
+        bubble_data_js += f"    [{risk}, {ret}, {conf}, '{r['name']}', '回避'],\n"
+
 # 这里生成一个完整的自包含HTML，数据直接内嵌
 
 html = f'''<!DOCTYPE html>
@@ -704,9 +759,12 @@ function switchTab(name, btn) {{
 function initRadarMain() {{
   const chart = getChart('radarMain');
   if (!chart) return;
+  const radarNames = {radar_names};
+  const radarSeries = [
+{radar_series_js}  ];
   chart.setOption({{
     backgroundColor: 'transparent',
-    legend: {{ data: ['中芯国际', '阿里巴巴', '联想集团'], bottom: 0, textStyle: {{ color: '#94a3b8', fontSize: 11 }} }},
+    legend: {{ data: radarNames, bottom: 0, textStyle: {{ color: '#94a3b8', fontSize: 11 }} }},
     radar: {{
       indicator: [
         {{ name: '技术壁垒\\n(研发/专利)', max: 100 }},
@@ -720,20 +778,7 @@ function initRadarMain() {{
       splitLine: {{ lineStyle: {{ color: '#334155' }} }},
       axisLine: {{ lineStyle: {{ color: '#334155' }} }},
     }},
-    series: [{{
-      type: 'radar',
-      data: [
-        {{ value: [90, 85, 95, 98, 70], name: '中芯国际',
-          areaStyle: {{ color: 'rgba(56,189,248,0.2)' }},
-          lineStyle: {{ color: '#38bdf8' }}, itemStyle: {{ color: '#38bdf8' }} }},
-        {{ value: [80, 92, 88, 75, 88], name: '阿里巴巴',
-          areaStyle: {{ color: 'rgba(251,191,36,0.2)' }},
-          lineStyle: {{ color: '#fbbf24' }}, itemStyle: {{ color: '#fbbf24' }} }},
-        {{ value: [75, 80, 82, 70, 95], name: '联想集团',
-          areaStyle: {{ color: 'rgba(52,211,153,0.2)' }},
-          lineStyle: {{ color: '#34d399' }}, itemStyle: {{ color: '#34d399' }} }},
-      ],
-    }}],
+    series: [{{ type: 'radar', data: radarSeries }}],
   }});
   window.addEventListener('resize', () => chart.resize());
 }}
@@ -741,12 +786,12 @@ function initRadarMain() {{
 function initUpsideBar() {{
   const chart = getChart('upsideBar');
   if (!chart) return;
-  const stocks = ['商汤科技','腾讯控股','华虹半导体','中兴通讯','百度集团','联想集团','澜起科技H','天数智芯','中芯国际','阿里巴巴'];
-  const upsides = [-15, 18, 20, 25, 35, 30, 45, 50, 40, 85];
+  const stocks = {upside_names};
+  const upsides = {upside_vals};
   const colors = upsides.map(v => v < 0 ? '#f87171' : v > 40 ? '#34d399' : '#38bdf8');
   chart.setOption({{
     backgroundColor: 'transparent',
-    grid: {{ left: 80, right: 60, top: 10, bottom: 20 }},
+    grid: {{ left: 90, right: 70, top: 10, bottom: 20 }},
     xAxis: {{ type: 'value', axisLabel: {{ color: '#94a3b8', formatter: v => v + '%' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ show: false }} }},
     yAxis: {{ type: 'category', data: stocks, axisLabel: {{ color: '#94a3b8', fontSize: 12 }}, axisLine: {{ show: false }}, axisTick: {{ show: false }} }},
     series: [{{
@@ -761,36 +806,23 @@ function initUpsideBar() {{
 function initBubbleChart() {{
   const chart = getChart('bubbleChart');
   if (!chart) return;
-  // [risk, return, confidence, name, signal]
+  // [risk, return, confidence, name, signal]  — 由 analysis.json 动态注入
   const data = [
-    [20, 85, 90, '阿里巴巴', '买入'],
-    [25, 40, 88, '中芯国际', '买入'],
-    [30, 30, 85, '联想集团', '买入'],
-    [35, 45, 75, '澜起科技H', '买入'],
-    [55, 50, 65, '天数智芯', '积累'],
-    [40, 35, 72, '百度集团', '积累'],
-    [30, 20, 78, '腾讯控股', '持有'],
-    [35, 25, 70, '中兴通讯', '积累'],
-    [38, 20, 68, '华虹半导体', '持有'],
-    [40, 25, 65, '小米集团', '持有'],
-    [45, 15, 60, '舜宇光学', '持有'],
-    [75, -15, 40, '商汤科技', '回避'],
-    [80, -20, 35, '旷视科技', '回避'],
-  ];
+{bubble_data_js}  ];
   chart.setOption({{
     backgroundColor: 'transparent',
-    grid: {{ left: 60, right: 80, top: 40, bottom: 60 }},
+    grid: {{ left: 60, right: 100, top: 40, bottom: 60 }},
     xAxis: {{ name: '风险度 →', nameLocation: 'end', min: 0, max: 100, nameTextStyle: {{ color: '#94a3b8' }}, axisLabel: {{ color: '#94a3b8' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ lineStyle: {{ color: '#334155' }} }} }},
     yAxis: {{ name: '↑ 预期收益', nameLocation: 'end', min: -30, max: 100, nameTextStyle: {{ color: '#94a3b8' }}, axisLabel: {{ color: '#94a3b8', formatter: v => v + '%' }}, splitLine: {{ lineStyle: {{ color: '#1e293b' }} }}, axisLine: {{ lineStyle: {{ color: '#334155' }} }} }},
     series: [{{
       type: 'scatter',
       data: data.map(d => ({{ value: [d[0], d[1], d[2]], name: d[3],
-        itemStyle: {{ color: d[1] > 30 ? 'rgba(52,211,153,0.8)' : d[1] < 0 ? 'rgba(248,113,113,0.8)' : 'rgba(56,189,248,0.8)' }} }})),
-      symbolSize: d => Math.sqrt(d[2]) * 5,
+        itemStyle: {{ color: d[1] > 30 ? 'rgba(52,211,153,0.85)' : d[1] < 0 ? 'rgba(248,113,113,0.85)' : 'rgba(56,189,248,0.85)' }} }})),
+      symbolSize: d => Math.max(Math.sqrt(d[2]) * 5, 18),
       label: {{ show: true, formatter: p => p.name, position: 'right', color: '#e2e8f0', fontSize: 11 }},
     }}],
     markLine: {{ data: [{{ xAxis: 50, lineStyle: {{ color: '#475569', type: 'dashed' }} }}, {{ yAxis: 0, lineStyle: {{ color: '#475569', type: 'dashed' }} }}] }},
-    tooltip: {{ formatter: p => `${{p.name}}<br>风险: ${{p.value[0]}}<br>收益: ${{p.value[1]}}%<br>信心: ${{p.value[2]}}` }},
+    tooltip: {{ formatter: p => `${{p.name}}<br/>风险度: ${{p.value[0]}}<br/>预期收益: +${{p.value[1]}}%<br/>信心度: ${{p.value[2]}}` }},
   }});
   window.addEventListener('resize', () => chart.resize());
 }}
@@ -841,7 +873,7 @@ function initSignalChart() {{
     visualMap: {{ min: 0, max: 100, calculable: true, orient: 'horizontal', left: 'center', bottom: 0, textStyle: {{ color: '#94a3b8' }},
       inRange: {{ color: ['#1e3a5f','#0369a1','#0284c7','#34d399','#10b981'] }} }},
     series: [{{ type: 'heatmap', data: flatData, label: {{ show: true, color: '#fff', fontSize: 11, formatter: p => p.value[2] }}, emphasis: {{ itemStyle: {{ shadowBlur: 10 }} }} }}],
-    tooltip: {{ formatter: p => `${{stocks[p.value[1]]}} · ${{dims[p.value[0]]]}}：${{p.value[2]}}` }},
+    tooltip: {{ formatter: p => `${{stocks[p.value[1]]}} · ${{dims[p.value[0]]}}：${{p.value[2]}}` }},
   }});
   window.addEventListener('resize', () => chart.resize());
 }}
@@ -1091,13 +1123,13 @@ function renderUsTables() {{
 }}
 
 // ─── 初始化 ───────────────────────────────────────────────────────────────────
-document.addEventListener('DOMContentLoaded', () => {{
+window.addEventListener('load', () => {{
   renderAshareTables();
   setTimeout(() => {{
     initRadarMain();
     initUpsideBar();
     initBubbleChart();
-  }}, 300);
+  }}, 400);
 }});
 </script>
 </body>
