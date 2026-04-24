@@ -33,6 +33,10 @@ STOCKS = {
         ("hk02382", "02382", "舜宇光学", "光学组件", 2),
         ("hk00020", "00020", "商汤科技", "AI软件", 3),
         ("hk06060", "06060", "旷视科技", "AI软件", 3),
+        ("hk00068", "00068", "群核科技", "AI软件/空间智能", 3),
+        ("hk00100", "00100", "MiniMax", "AI大模型", 2),
+        ("hk03896", "03896", "金山云", "云/AI平台", 3),
+        ("hk06082", "06082", "壁仞科技", "AI GPU", 3),
     ],
     "ashare": [
         # 科创板/创业板/深交所/上交所
@@ -76,6 +80,7 @@ STOCKS = {
         # ── AI应用 ──
         ("sz002230", "002230", "科大讯飞", "AI应用"),
         ("sz300418", "300418", "昆仑万维", "AI应用"),
+        ("sh601360", "601360", "360集团", "AI安全"),
     ],
     "us": [
         # ── AI GPU/算力 ──
@@ -104,6 +109,12 @@ STOCKS = {
         # ── AI应用 ──
         ("usGOOG", "GOOG", "谷歌", "AI应用/云"),
         ("usMETA", "META", "Meta", "AI应用/社交"),
+        # ── AI服务器 ──
+        ("usDELL", "DELL", "戴尔科技", "AI服务器"),
+        # ── 云/AI平台 ──
+        ("usAMZN", "AMZN", "亚马逊", "云/AI平台"),
+        # ── EDA ──
+        ("usCDNS", "CDNS", "铿腾电子", "EDA"),
     ]
 }
 
@@ -240,23 +251,34 @@ def main():
     print(f"   输出: {args.output}")
     print()
 
-    # 收集所有腾讯代码
-    all_codes = []
-    for market_stocks in STOCKS.values():
-        all_codes.extend([s[0] for s in market_stocks])
-
-    # 分批获取（腾讯接口单次上限约40个）
-    batch_size = 30
+    # ⚠️ 关键：腾讯财经API对港股与A股/美股混批时会静默丢弃港股数据
+    # 必须将港股与A股/美股分开独立请求
     all_quotes = {}
+    batch_size = 30
 
-    for i in range(0, len(all_codes), batch_size):
-        batch = all_codes[i:i + batch_size]
-        print(f"  📡 获取行情批次 {i//batch_size + 1}（{len(batch)} 个标的）...")
+    # 1. 港股 — 专用独立请求（不与其他市场混批）
+    hk_codes = [s[0] for s in STOCKS["hk"]]
+    print(f"  📡 港股专用批次（{len(hk_codes)} 个标的）...")
+    for i in range(0, len(hk_codes), batch_size):
+        batch = hk_codes[i:i + batch_size]
         quotes = fetch_tencent_quotes(batch)
         all_quotes.update(quotes)
-        if i + batch_size < len(all_codes):
+        if i + batch_size < len(hk_codes):
+            time.sleep(0.3)
+
+    # 2. A股 + 美股 — 合并批次
+    non_hk_codes = [s[0] for s in STOCKS["ashare"]] + [s[0] for s in STOCKS["us"]]
+    batch_num = 0
+    for i in range(0, len(non_hk_codes), batch_size):
+        batch = non_hk_codes[i:i + batch_size]
+        batch_num += 1
+        print(f"  📡 A股/美股批次 {batch_num}（{len(batch)} 个标的）...")
+        quotes = fetch_tencent_quotes(batch)
+        all_quotes.update(quotes)
+        if i + batch_size < len(non_hk_codes):
             time.sleep(0.5)
 
+    all_codes = hk_codes + non_hk_codes
     success = sum(1 for k in all_codes if k in all_quotes)
     print(f"  ✅ 成功获取 {success}/{len(all_codes)} 个标的行情")
     print()

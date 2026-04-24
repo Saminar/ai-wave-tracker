@@ -53,9 +53,11 @@ metadata: {"emoji":"🌊"}
 | 中芯国际 | 00981 | 大陆先进代工龙头，18A工艺2026量产 |
 | 华虹半导体 | 01347 | 特色工艺代工，功率/模拟 |
 | 天数智芯 | 09903 | 国产 AI 训练 GPU（天垓100/BI-V150）|
-| 壁仞科技 | 06082 | 国产 GPU，BR100 系列 |
+| 壁仞科技 | 06082 | 国产 GPU，BR100 系列（⚠️ 估值偏高）|
 | 商汤科技 | 00020 | AI 软件平台（⚠️ 高估值亏损） |
 | 旷视科技 | 06060 | 计算机视觉 AI（⚠️ 亏损） |
+| 群核科技 | 00068 | 空间智能 SaaS（酷家乐/Coohom/SpatialLM），2026-04-17 IPO，首日+160%，杭州六小龙第一股 |
+| MiniMax | 00100 | 全模态 AI 大模型（文本/语音/视频），2026-01-09 IPO，超额认购1209倍 |
 
 #### A 股
 | 公司（中文） | 代码 | 市场 | 角色 |
@@ -127,20 +129,24 @@ metadata: {"emoji":"🌊"}
 | 百度集团 | 09888 | 文心一言，AI 原生转型，自动驾驶 |
 | 小米集团 | 01810 | AI Phone + AI 家居生态 |
 | 金山云 | 03896 | AI 云服务，WPS AI 受益 |
+| MiniMax | 00100 | 全模态 AI 大模型平台，2026 新股 |
 
 #### A 股
 | 公司（中文） | 代码 | 市场 | 角色 |
 |------------|------|------|------|
 | 科大讯飞 | 002230 | 深交所 | 语音 AI + 教育 AI |
-| 360集团 | 601360 | 上交所 | 安全 AI |
+| 360集团 | 601360 | 上交所 | 安全 AI + 数字政府 |
+| 昆仑万维 | 300418 | 创业板 | AI应用/天工大模型 |
 
 #### 美股
 | 公司 | 代码 | 角色 |
 |------|------|------|
 | 微软 | MSFT | Azure + OpenAI，AI 工作流龙头 |
 | Meta | META | AI 研究 + Llama 开源生态 |
-| Alphabet | GOOGL | GCP + Gemini，TPU 自研 |
+| Alphabet | GOOG | GCP + Gemini，TPU 自研 |
 | 亚马逊 | AMZN | AWS + Trainium 芯片 |
+| 戴尔科技 | DELL | 企业级 AI 服务器 |
+| 铿腾电子 | CDNS | EDA 龙头 |
 
 ---
 
@@ -163,9 +169,16 @@ metadata: {"emoji":"🌊"}
 ```
 用户触发 "AI浪潮分析" / "AI产业链追踪" / "港股AI推荐"
 │
-├─ Phase 1: 行情数据采集（并行）
+├─ Phase 0: 标的池更新检查（⚡ 每次必跑，快速完成）
+│   ├─ check_universe_updates.py → /tmp/aiwave_universe_update.json
+│   ├─ 渠道一：东方财富港股近期新上市（AI关键词过滤）
+│   ├─ 渠道二：东方财富科创板/创业板近期新上市
+│   └─ 若发现新标的 → 展示候选列表，询问用户是否纳入
+│
+├─ Phase 1: 行情数据采集
 │   ├─ fetch_stock_data.py  → /tmp/aiwave_stock.json
-│   └─ 覆盖：港股12支 + A股13支 + 美股10支
+│   ├─ 覆盖：港股16支 + A股31支 + 美股22支 = 69家
+│   └─ ⚠️ 港股单独批次请求（不与A/US混批，否则静默丢数据）
 │
 ├─ Phase 2: 资讯与催化剂采集
 │   ├─ fetch_news_analysis.py → /tmp/aiwave_news.json
@@ -190,6 +203,29 @@ metadata: {"emoji":"🌊"}
 ---
 
 ## 执行步骤详解
+
+### Phase 0：标的池更新检查（每次必跑）
+
+```bash
+python3 ~/.workbuddy/skills/ai-wave-tracker/scripts/check_universe_updates.py \
+    --output /tmp/aiwave_universe_update.json \
+    --days 180
+```
+
+**检查渠道：**
+| 渠道 | 数据源 | 覆盖 |
+|------|--------|------|
+| 港股新股 | 东方财富 RPT_MAIN_NEWSTOCK | 近180天港交所主板IPO |
+| A股新股 | 东方财富 RPT_MAIN_NEWSTOCK | 近180天科创板/创业板IPO |
+| 内置候选 | check_universe_updates.py 手动维护 | 已知待纳入标的 |
+
+**若发现新标的：**
+- 展示候选列表（代码、名称、上市日期、板块）
+- 用户确认后手动添加到 `fetch_stock_data.py` 的 STOCKS 字典
+- 同步更新 `check_universe_updates.py` 的 CURRENT_HK/CURRENT_ASHARE 集合
+
+**当前追踪池规模：**
+- 港股 16支 + A股 31支 + 美股 22支 = **69家**
 
 ### Phase 1：行情数据采集
 
@@ -421,10 +457,11 @@ ai-wave-tracker/
 ├── references/
 │   └── companies.json          # 完整标的清单（含代码/市场/分类）
 └── scripts/
-    ├── fetch_stock_data.py     # 多市场行情获取
-    ├── fetch_news_analysis.py  # 新闻/财报/催化剂获取
-    ├── generate_report.sh      # 暗色主题 HTML 报告生成器
-    └── sync_report.sh          # GitHub knowledge-base 同步器
+    ├── check_universe_updates.py  # Phase 0: 标的池更新检查（每次必跑）
+    ├── fetch_stock_data.py        # Phase 1: 多市场行情获取
+    ├── fetch_news_analysis.py     # Phase 2: 新闻/财报/催化剂获取
+    ├── generate_report.sh         # Phase 4: 暗色主题 HTML 报告生成器
+    └── sync_report.sh             # Phase 5: GitHub knowledge-base 同步器
 ```
 
 ---
