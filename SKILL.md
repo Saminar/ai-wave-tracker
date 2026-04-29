@@ -1,7 +1,7 @@
 ---
 name: ai-wave-tracker
 description: AI浪潮产业链全景追踪与投资仪表盘。覆盖AI芯片/GPU/光模块/AI服务器全产业链的A股、港股、美股标的，自动获取行情与新闻，生成深色主题可视化HTML投资报告（含ECharts多图表），并同步到GitHub knowledge-base知识库。
-trigger_words: AI浪潮, AI产业链, AI芯片分析, GPU产业链, 光模块分析, AI服务器, 港股AI, A股AI, 美股AI, AI投资报告, 算力产业链, 国产替代, DeepSeek影响
+trigger_words: AI浪潮, AI产业链, AI芯片分析, GPU产业链, 光模块分析, AI服务器, 港股AI, A股AI, 美股AI, AI投资报告, 算力产业链, 国产替代, DeepSeek影响, 电力基建, AI数据中心用电, 核电PPA, 储能BESS
 metadata: {"emoji":"🌊"}
 ---
 
@@ -34,7 +34,7 @@ metadata: {"emoji":"🌊"}
 
 ---
 
-## 覆盖标的（60+ 家）
+## 覆盖标的（89 家）
 
 ### 🔴 核心算力 — AI GPU / ASIC
 
@@ -165,6 +165,21 @@ metadata: {"emoji":"🌊"}
 
 ---
 
+### ⚡ 电力基建（新增板块）
+
+AI数据中心能源基础设施全链条监控（2025-2030年CAGR超40%）：
+
+| 子链 | A股 | 港股 | 美股 |
+|------|-----|------|------|
+| 发电 | 中国核电(601985) 长江电力(600900) 东方电气(600875) | 华润电力(00836) 中广核电力(01816) | CEG VST NEE |
+| 输电 | 国电南瑞(600406) 特变电工(600089) 金盘科技(688676) 中恒电气(002364) | — | PWR |
+| 储电 | 宁德时代(300750) 阳光电源(300274) | — | — |
+| 用电侧 | 科华数据(002335) 英维克(002837) | — | ETN |
+
+**核心投资逻辑**：核电PPA协议（CEG/中国核电）、储能BESS（宁德时代）、智能电网设备（国电南瑞/特变电工）为三大直接受益链条。
+
+---
+
 ## 完整工作流程
 
 ```
@@ -178,7 +193,7 @@ metadata: {"emoji":"🌊"}
 │
 ├─ Phase 1: 行情数据采集
 │   ├─ fetch_stock_data.py  → /tmp/aiwave_stock.json
-│   ├─ 覆盖：港股16支 + A股31支 + 美股22支 = 69家
+│   ├─ 覆盖：港股19支 + A股43支 + 美股27支 = 89家
 │   └─ ⚠️ 港股单独批次请求（不与A/US混批，否则静默丢数据）
 │
 ├─ Phase 2: 资讯与催化剂采集
@@ -226,7 +241,7 @@ python3 ~/.workbuddy/skills/ai-wave-tracker/scripts/check_universe_updates.py \
 - 同步更新 `check_universe_updates.py` 的 CURRENT_HK/CURRENT_ASHARE 集合
 
 **当前追踪池规模：**
-- 港股 16支 + A股 31支 + 美股 22支 = **69家**
+- 港股 19支 + A股 43支 + 美股 27支 = **89家**
 
 ### Phase 1：行情数据采集
 

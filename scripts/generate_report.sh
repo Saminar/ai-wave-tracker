@@ -586,6 +586,23 @@ html = f'''<!DOCTYPE html>
           <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">09888 百度集团</span>
         </div>
       </div>
+      <div class="theme-card">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <span style="font-size:20px;">⚡</span>
+          <div>
+            <div style="font-weight:700;color:#e2e8f0;">电力基建 — AI算力能源瓶颈</div>
+            <div style="font-size:13px;color:#fbbf24;margin-top:2px;">★★★★☆ 2026-2028长线主题</div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--muted);line-height:1.7;">AI数据中心电力需求2025-2030年CAGR超40%，核电PPA/储能BESS/智能电网成为算力基础设施新短板。核电+储能+特高压变压器是最直接受益链条。</div>
+        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">CEG Constellation</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">600406 国电南瑞</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">300750 宁德时代</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">600089 特变电工</span>
+        </div>
+      </div>
+      </div>
     </div>
   </div>
 </div>
@@ -760,6 +777,18 @@ const ashareData = [
   // ── AI应用 ──
   {{ code:"002230", name:"科大讯飞", market:"深交所", sector:"AI应用", logic:"星火大模型龙头，教育/医疗/政务AI应用场景落地", signal:"hold" }},
   {{ code:"300418", name:"昆仑万维", market:"创业板", sector:"AI应用", logic:"天工大模型，AGI布局最激进A股标的之一", signal:"watch" }},
+  // ── 电力基建（发电/输电/储电/用电） ──
+  {{ code:"601985", name:"中国核电", market:"上交所", sector:"电力基建/发电", logic:"核电龙头，数据中心清洁能源供应，签约微软/谷歌等AI企业核电PPA合同趋势受益", signal:"accumulate" }},
+  {{ code:"600900", name:"长江电力", market:"上交所", sector:"电力基建/发电", logic:"水电巨头，零碳稳定电力，AI数据中心偏好清洁能源PPA，股息率高安全边际足", signal:"accumulate" }},
+  {{ code:"600406", name:"国电南瑞", market:"上交所", sector:"电力基建/输电", logic:"智能电网核心设备龙头，数字化电网+AI调度系统，国家电网直系受益方", signal:"buy" }},
+  {{ code:"600089", name:"特变电工", market:"上交所", sector:"电力基建/输电", logic:"变压器全球龙头，国内外超高压变压器订单爆满，AI数据中心配套电力设施直接受益", signal:"buy" }},
+  {{ code:"688676", name:"金盘科技", market:"科创板", sector:"电力基建/输电", logic:"固态变压器/数字能源管理设备，数据中心专用模块化变压器，新型电力系统受益", signal:"buy" }},
+  {{ code:"002364", name:"中恒电气", market:"深交所", sector:"电力基建/输电", logic:"HVDC换流阀+直流断路器，大型数据中心直流供电改造，特高压输电核心设备", signal:"buy" }},
+  {{ code:"300750", name:"宁德时代", market:"创业板", sector:"电力基建/储电", logic:"储能BESS全球龙头，AI数据中心UPS级大型储能系统，大型电网侧储能订单持续扩张", signal:"buy" }},
+  {{ code:"300274", name:"阳光电源", market:"创业板", sector:"电力基建/储电", logic:"储能逆变器+光伏逆变器双龙头，大型储能电站系统集成全球前三，数据中心供电侧受益", signal:"accumulate" }},
+  {{ code:"002335", name:"科华数据", market:"深交所", sector:"电力基建/用电", logic:"数据中心UPS+模块化机房，国内AI算力基础设施配套电源供应商", signal:"buy" }},
+  {{ code:"002837", name:"英维克", market:"深交所", sector:"电力基建/用电", logic:"数据中心精密温控+液冷系统，AI服务器高热密度催生液冷爆发，订单高速增长", signal:"accumulate" }},
+  {{ code:"600875", name:"东方电气", market:"上交所", sector:"电力基建/发电设备", logic:"核电/风电/水电发电设备制造龙头，核电站主要设备供应，清洁能源产能扩张受益", signal:"accumulate" }},
 ];
 
 const usData = [
@@ -789,6 +818,12 @@ const usData = [
   // ── AI应用 ──
   {{ code:"GOOG", name:"谷歌", sector:"AI应用/云", mcap:"20000", moat:"Gemini+TPU自研，搜索/广告+GCP三引擎", ai_rel:"★★★★★" }},
   {{ code:"META", name:"Meta", sector:"AI应用/社交", mcap:"15000", moat:"Llama开源生态+40亿用户AI推荐，广告AI驱动增长", ai_rel:"★★★★★" }},
+  // ── 电力基建 ──
+  {{ code:"CEG", name:"Constellation Energy", sector:"电力基建/核电", mcap:"700", moat:"美国最大核电运营商，微软/谷歌签约核电PPA，AI数据中心清洁能源首选", ai_rel:"★★★★★" }},
+  {{ code:"VST", name:"Vistra Energy", sector:"电力基建/核电+热", mcap:"450", moat:"核电+天然气电力，德州电网龙头，数据中心选址优势，ERCOT市场高溢价", ai_rel:"★★★★☆" }},
+  {{ code:"NEE", name:"NextEra Energy", sector:"电力基建/可再生", mcap:"1500", moat:"全球最大可再生能源公司，AI数据中心长期PPA协议规模最大", ai_rel:"★★★☆☆" }},
+  {{ code:"ETN", name:"Eaton Corporation", sector:"电力基建/用电", mcap:"1200", moat:"数据中心配电+UPS+断路器全栈，AI数据中心电力基础设施订单激增", ai_rel:"★★★★☆" }},
+  {{ code:"PWR", name:"Quanta Services", sector:"电力基建/输电", mcap:"500", moat:"北美最大电网建设承包商，超导输电/变电站升级，数据中心电力接入工程", ai_rel:"★★★★☆" }},
 ];
 
 // ─── 工具函数 ───────────────────────────────────────────────────────────────
@@ -1111,6 +1146,11 @@ function initTreemapChart() {{
         ]}},
         {{ name: '⚡ 电源散热', value: 60, itemStyle: {{ color: '#2a2010' }}, children: [
           {{ name: 'VRT', value: 30 }}, {{ name: '英威腾', value: 15 }}, {{ name: '申菱环境', value: 15 }},
+        ]}},
+        {{ name: '⚡ 电力基建', value: 130, itemStyle: {{ color: '#1a1a30' }}, children: [
+          {{ name: 'CEG核电', value: 35 }}, {{ name: 'VST', value: 25 }},
+          {{ name: '国电南瑞', value: 20 }}, {{ name: '宁德时代', value: 25 }},
+          {{ name: '特变电工', value: 15 }}, {{ name: '长江电力', value: 10 }},
         ]}},
         {{ name: '🤖 AI应用', value: 180, itemStyle: {{ color: '#102a20' }}, children: [
           {{ name: '谷歌', value: 70 }}, {{ name: 'Meta', value: 60 }},

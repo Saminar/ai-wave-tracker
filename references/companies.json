@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
   "last_updated": "2026-04-29",
-  "total_companies": 63,
+  "total_companies": 81,
   "sectors": {
     "ai_gpu_asic": "AI GPU / ASIC 算力核心",
     "optical_module": "光模块 / 网络互联",
@@ -9,7 +9,8 @@
     "cloud_platform": "云计算 / AI 平台",
     "semi_equipment": "半导体设备 / EDA",
     "foundry": "先进代工",
-    "memory_hbm": "HBM / 存储接口"
+    "memory_hbm": "HBM / 存储接口",
+    "power_infrastructure": "电力基建 / 能源供应链"
   },
   "hk_stocks": [
     {
@@ -180,6 +181,32 @@
       "target_upside_pct": -15,
       "signal": "sell",
       "pe_range": [0, 0]
+    },
+    {
+      "code": "00836",
+      "name_zh": "华润电力",
+      "name_en": "China Resources Power",
+      "market": "HKEX",
+      "sector": "power_infrastructure",
+      "tier": 3,
+      "description": "华润集团旗下综合发电商，核电+火电+可再生能源，AI数据中心清洁能源供给侧",
+      "key_catalysts": ["核电容量扩张", "AI数据中心PPA签约", "清洁能源转型"],
+      "target_upside_pct": 15,
+      "signal": "hold",
+      "pe_range": [8, 14]
+    },
+    {
+      "code": "01816",
+      "name_zh": "中广核电力",
+      "name_en": "CGN Power",
+      "market": "HKEX",
+      "sector": "power_infrastructure",
+      "tier": 3,
+      "description": "中国最大核电运营商，稳定清洁电力供应，AI数据中心核电PPA长期受益方",
+      "key_catalysts": ["核电新机组并网", "AI企业PPA合同", "碳中和政策红利"],
+      "target_upside_pct": 20,
+      "signal": "accumulate",
+      "pe_range": [10, 16]
     }
   ],
   "ashare_stocks": [
@@ -280,6 +307,83 @@
       "market": "上交所",
       "sector": "ai_server",
       "description": "高性能计算+AI服务器，政府采购优势"
+    },
+    {
+      "code": "601985",
+      "name_zh": "中国核电",
+      "market": "上交所",
+      "sector": "power_infrastructure",
+      "description": "核电龙头，数据中心清洁能源供应，签约微软/谷歌等AI企业核电PPA合同趋势受益"
+    },
+    {
+      "code": "600900",
+      "name_zh": "长江电力",
+      "market": "上交所",
+      "sector": "power_infrastructure",
+      "description": "水电巨头，零碳稳定电力，AI数据中心偏好清洁能源PPA，股息率高安全边际足"
+    },
+    {
+      "code": "600406",
+      "name_zh": "国电南瑞",
+      "market": "上交所",
+      "sector": "power_infrastructure",
+      "description": "智能电网核心设备龙头，数字化电网+AI调度系统，国家电网直系受益方"
+    },
+    {
+      "code": "600089",
+      "name_zh": "特变电工",
+      "market": "上交所",
+      "sector": "power_infrastructure",
+      "description": "变压器全球龙头，国内外超高压变压器订单爆满，AI数据中心配套电力设施直接受益"
+    },
+    {
+      "code": "688676",
+      "name_zh": "金盘科技",
+      "market": "科创板",
+      "sector": "power_infrastructure",
+      "description": "固态变压器/数字能源管理设备，数据中心专用模块化变压器，新型电力系统受益"
+    },
+    {
+      "code": "002364",
+      "name_zh": "中恒电气",
+      "market": "深交所",
+      "sector": "power_infrastructure",
+      "description": "HVDC换流阀+直流断路器，大型数据中心直流供电改造，特高压输电核心设备"
+    },
+    {
+      "code": "300750",
+      "name_zh": "宁德时代",
+      "market": "创业板",
+      "sector": "power_infrastructure",
+      "description": "储能BESS全球龙头，AI数据中心UPS级大型储能系统，大型电网侧储能订单持续扩张"
+    },
+    {
+      "code": "300274",
+      "name_zh": "阳光电源",
+      "market": "创业板",
+      "sector": "power_infrastructure",
+      "description": "储能逆变器+光伏逆变器双龙头，大型储能电站系统集成全球前三，数据中心供电侧受益"
+    },
+    {
+      "code": "002335",
+      "name_zh": "科华数据",
+      "market": "深交所",
+      "sector": "power_infrastructure",
+      "description": "数据中心UPS+模块化机房，国内AI算力基础设施配套电源供应商"
+    },
+    {
+      "code": "002837",
+      "name_zh": "英维克",
+      "market": "深交所",
+      "sector": "power_infrastructure",
+      "description": "数据中心精密温控+液冷系统，AI服务器高热密度催生液冷爆发，订单高速增长"
+    },
+    {
+      "code": "600875",
+      "name_zh": "东方电气",
+      "market": "上交所",
+      "sector": "power_infrastructure",
+      "description": "核电/风电/水电发电设备制造龙头，核电站主要设备供应，清洁能源产能扩张受益"
     }
   ],
   "us_stocks": [
@@ -362,6 +466,46 @@
       "sector": "cloud_platform",
       "description": "Azure+OpenAI，AI工作流全球最大受益者",
       "market_cap_b_usd": 3200
+    },
+    {
+      "code": "CEG",
+      "name_zh": "Constellation Energy",
+      "name_en": "Constellation Energy",
+      "sector": "power_infrastructure",
+      "description": "美国最大核电运营商，微软/谷歌签约核电PPA，AI数据中心清洁能源首选",
+      "market_cap_b_usd": 700
+    },
+    {
+      "code": "VST",
+      "name_zh": "Vistra Energy",
+      "name_en": "Vistra Energy",
+      "sector": "power_infrastructure",
+      "description": "核电+天然气电力，德州电网龙头，数据中心选址优势，ERCOT市场高溢价",
+      "market_cap_b_usd": 450
+    },
+    {
+      "code": "NEE",
+      "name_zh": "NextEra Energy",
+      "name_en": "NextEra Energy",
+      "sector": "power_infrastructure",
+      "description": "全球最大可再生能源公司，AI数据中心长期PPA协议规模最大",
+      "market_cap_b_usd": 1500
+    },
+    {
+      "code": "ETN",
+      "name_zh": "Eaton Corporation",
+      "name_en": "Eaton Corporation",
+      "sector": "power_infrastructure",
+      "description": "数据中心配电+UPS+断路器全栈，AI数据中心电力基础设施订单激增",
+      "market_cap_b_usd": 1200
+    },
+    {
+      "code": "PWR",
+      "name_zh": "Quanta Services",
+      "name_en": "Quanta Services",
+      "sector": "power_infrastructure",
+      "description": "北美最大电网建设承包商，超导输电/变电站升级，数据中心电力接入工程",
+      "market_cap_b_usd": 500
     }
   ]
 }
