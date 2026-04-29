@@ -53,6 +53,13 @@ except Exception:
 # 过滤掉 sell 信号且无目标价的标的（如商汤）
 chart_recs = [r for r in hk_recs if r.get('upside_pct') is not None]
 
+# 评分归一化辅助函数：将 0-100 或 0-10 的评分统一到 0-10 量纲
+def norm_score(v, default=7):
+    """将评分归一化到 0-10 量纲，兼容 0-100 和 0-10 两种输入。"""
+    if v is None:
+        return default
+    return round(v / 10.0, 1) if v > 10 else float(v)
+
 # 雷达图：取前5个（tier1+tier2 中 buy/accumulate）
 radar_recs = [r for r in chart_recs if r.get('signal') in ('buy','accumulate')][:5]
 radar_names = json.dumps([r['name'] for r in radar_recs], ensure_ascii=False)
@@ -61,11 +68,11 @@ radar_series_js = ''
 for idx, r in enumerate(radar_recs):
     sc = r.get('scores', {})
     vals = [
-        sc.get('tech_moat', 70),
-        sc.get('market_position', 70),
-        sc.get('ai_exposure', 70),
-        sc.get('policy_tailwind', 70),
-        sc.get('valuation_safety', 70),
+        norm_score(sc.get('tech_moat')),
+        norm_score(sc.get('market_position')),
+        norm_score(sc.get('ai_exposure')),
+        norm_score(sc.get('policy_tailwind')),
+        norm_score(sc.get('valuation_safety')),
     ]
     col = radar_colors[idx % len(radar_colors)]
     radar_series_js += f'''        {{ value: {vals}, name: '{r['name']}',
@@ -82,18 +89,26 @@ bubble_data_js = ''
 signal_map = {'buy':'买入','accumulate':'积累','hold':'持有','sell':'回避'}
 for r in chart_recs:
     sc = r.get('scores', {})
-    risk = 100 - sc.get('valuation_safety', 50)
+    # 风险度：估值安全(反向)线性映射到 25-75，+market_position 微扰避免重叠
+    # val_safety(0-10): 4→75, 5→63, 6→52, 7→40, 8→29, 9→17  (range ~17-75)
+    val_safety = norm_score(sc.get('valuation_safety'))
+    mkt_pos    = norm_score(sc.get('market_position'))
+    base_risk  = round((10 - val_safety) / 6 * 56 + 19)
+    risk = min(90, max(10, round(base_risk + (mkt_pos - 7) * 1.5)))
     ret  = round(r.get('upside_pct', 0), 1)
-    conf = round((sc.get('tech_moat', 70) + sc.get('ai_exposure', 70)) / 2)
+    conf = round((norm_score(sc.get('tech_moat')) + norm_score(sc.get('ai_exposure'))) / 2)
     sig  = signal_map.get(r.get('signal','hold'), r.get('signal','持有'))
     bubble_data_js += f"    [{risk}, {ret}, {conf}, '{r['name']}', '{sig}'],\n"
 # 追加 sell 标的
 for r in hk_recs:
     if r.get('signal') == 'sell':
         sc = r.get('scores', {})
-        risk = 100 - sc.get('valuation_safety', 20)
+        val_safety = norm_score(sc.get('valuation_safety'))
+        mkt_pos    = norm_score(sc.get('market_position'))
+        base_risk  = round((10 - val_safety) / 6 * 56 + 19)
+        risk = min(90, max(10, round(base_risk + (mkt_pos - 7) * 1.5)))
         ret  = -15
-        conf = round((sc.get('tech_moat', 60) + sc.get('ai_exposure', 70)) / 2)
+        conf = round((norm_score(sc.get('tech_moat', 6)) + norm_score(sc.get('ai_exposure', 7))) / 2)
         bubble_data_js += f"    [{risk}, {ret}, {conf}, '{r['name']}', '回避'],\n"
 
 # 这里生成一个完整的自包含HTML，数据直接内嵌
@@ -716,6 +731,7 @@ const ashareData = [
   {{ code:"300502", name:"新易盛", market:"创业板", sector:"光模块", logic:"800G快速放量，1.6T技术储备完善", signal:"buy" }},
   {{ code:"000988", name:"华工科技", market:"深交所", sector:"激光/光模块", logic:"激光器+光模块多元化，汽车激光切割新增长极", signal:"hold" }},
   {{ code:"002281", name:"光迅科技", market:"深交所", sector:"光器件", logic:"中国信科旗下，光芯片自主化核心企业", signal:"hold" }},
+  {{ code:"603083", name:"剑桥科技", market:"上交所", sector:"光模块/交换机", logic:"光模块+以太网交换机双主线，AI数据中心互连核心，800G出货加速，2026年高增长可期", signal:"buy" }},
   // ── AI服务器 ──
   {{ code:"000977", name:"浪潮信息", market:"深交所", sector:"AI服务器", logic:"国内AI服务器龙头，腾讯/阿里/百度核心供应商", signal:"buy" }},
   {{ code:"601138", name:"工业富联", market:"上交所", sector:"AI服务器ODM", logic:"全球AI服务器ODM前三，英伟达GPU服务器代工", signal:"buy" }},
@@ -810,11 +826,11 @@ function initRadarMain() {{
     legend: {{ data: radarNames, bottom: 0, textStyle: {{ color: '#94a3b8', fontSize: 11 }} }},
     radar: {{
       indicator: [
-        {{ name: '技术壁垒\\n(研发/专利)', max: 100 }},
-        {{ name: '市场地位\\n(份额/定价)', max: 100 }},
-        {{ name: 'AI受益度\\n(直接相关)', max: 100 }},
-        {{ name: '政策顺风\\n(国产替代)', max: 100 }},
-        {{ name: '估值安全\\n(PE/PEG)', max: 100 }},
+        {{ name: '技术壁垒\\n(研发/专利)', max: 10 }},
+        {{ name: '市场地位\\n(份额/定价)', max: 10 }},
+        {{ name: 'AI受益度\\n(直接相关)', max: 10 }},
+        {{ name: '政策顺风\\n(国产替代)', max: 10 }},
+        {{ name: '估值安全\\n(PE/PEG)', max: 10 }},
       ],
       splitArea: {{ areaStyle: {{ color: ['rgba(30,41,59,0.3)','rgba(30,41,59,0.5)','rgba(30,41,59,0.7)','rgba(30,41,59,0.9)','rgba(30,41,59,1)'].reverse() }} }},
       axisName: {{ color: '#94a3b8', fontSize: 11, lineHeight: 16 }},
@@ -861,7 +877,7 @@ function initBubbleChart() {{
       type: 'scatter',
       data: data.map(d => ({{ value: [d[0], d[1], d[2]], name: d[3],
         itemStyle: {{ color: d[1] > 30 ? 'rgba(52,211,153,0.85)' : d[1] < 0 ? 'rgba(248,113,113,0.85)' : 'rgba(56,189,248,0.85)' }} }})),
-      symbolSize: d => Math.max(Math.sqrt(d[2]) * 5, 18),
+      symbolSize: d => Math.max(Math.sqrt(d[2]) * 15, 20),
       label: {{ show: true, formatter: p => p.name, position: 'right', color: '#e2e8f0', fontSize: 11 }},
     }}],
     markLine: {{ data: [{{ xAxis: 50, lineStyle: {{ color: '#475569', type: 'dashed' }} }}, {{ yAxis: 0, lineStyle: {{ color: '#475569', type: 'dashed' }} }}] }},
@@ -952,10 +968,12 @@ function initSankeyChart() {{
         {{name:'ASIC芯片\\n(AVGO/MRVL)'}},
         {{name:'华为昇腾 910B'}},
         {{name:'国产GPU/AI芯片'}},
+        {{name:'光电混合算力\\n(曦智科技)'}},
         // ── L5: 服务器 + 网络互连 + 电源散热 ──
         {{name:'SMCI/Dell AI服务器'}},
         {{name:'浪潮/富联 AI服务器'}},
         {{name:'光模块\\n(旭创/新易盛)'}},
+        {{name:'光互连/光计算互连\\n(MRVL DSP)'}},
         {{name:'网络互连\\n(思科/锐捷)'}},
         {{name:'电源散热\\n(VRT/申菱)'}},
         // ── L6: 云/数据中心 ──
@@ -1006,6 +1024,17 @@ function initSankeyChart() {{
         // 光模块 → 服务器
         {{source:'光模块\\n(旭创/新易盛)', target:'SMCI/Dell AI服务器', value:50}},
         {{source:'光模块\\n(旭创/新易盛)', target:'浪潮/富联 AI服务器', value:30}},
+        {{source:'光模块\\n(旭创/新易盛)', target:'光互连/光计算互连\\n(MRVL DSP)', value:40}},
+        // 光电混合算力（曦智科技）← 上游：代工+光器件+EDA
+        {{source:'台积电 CoWoS先进封装', target:'光电混合算力\\n(曦智科技)', value:35}},
+        {{source:'光模块\\n(旭创/新易盛)', target:'光电混合算力\\n(曦智科技)', value:25}},
+        {{source:'EDA\\n(SNPS/华大九天)', target:'光电混合算力\\n(曦智科技)', value:10}},
+        // 光电混合算力 → 数据中心（替代传统GPU互连，显著降低能耗）
+        {{source:'光电混合算力\\n(曦智科技)', target:'国内AI数据中心', value:45}},
+        {{source:'光电混合算力\\n(曦智科技)', target:'阿里云/腾讯云', value:25}},
+        // 光互连互连节点 → 服务器
+        {{source:'光互连/光计算互连\\n(MRVL DSP)', target:'SMCI/Dell AI服务器', value:35}},
+        {{source:'光互连/光计算互连\\n(MRVL DSP)', target:'浪潮/富联 AI服务器', value:25}},
         // 网络互连 → 服务器
         {{source:'网络互连\\n(思科/锐捷)', target:'SMCI/Dell AI服务器', value:30}},
         {{source:'网络互连\\n(思科/锐捷)', target:'浪潮/富联 AI服务器', value:20}},
@@ -1048,9 +1077,10 @@ function initTreemapChart() {{
           {{ name: 'AMD', value: 60 }}, {{ name: '寒武纪', value: 40 }},
           {{ name: '海光信息', value: 30 }}, {{ name: '天数智芯', value: 20 }},
         ]}},
-        {{ name: '🟠 光模块/网络', value: 200, itemStyle: {{ color: '#1a3040' }}, children: [
+        {{ name: '🟠 光模块/光计算', value: 250, itemStyle: {{ color: '#1a3040' }}, children: [
           {{ name: '中际旭创', value: 70 }}, {{ name: '天孚通信', value: 50 }},
           {{ name: '新易盛', value: 40 }}, {{ name: 'Coherent', value: 40 }},
+          {{ name: '曦智科技\\n光电算力', value: 50 }},
         ]}},
         {{ name: '⚙️ 先进代工', value: 180, itemStyle: {{ color: '#1e2840' }}, children: [
           {{ name: '中芯国际', value: 90 }}, {{ name: '台积电', value: 60 }}, {{ name: '华虹半导体', value: 30 }},

@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "last_updated": "2026-04-22",
-  "total_companies": 62,
+  "last_updated": "2026-04-29",
+  "total_companies": 63,
   "sectors": {
     "ai_gpu_asic": "AI GPU / ASIC 算力核心",
     "optical_module": "光模块 / 网络互联",
@@ -252,6 +252,13 @@
       "market": "深交所",
       "sector": "optical_module",
       "description": "中国信科旗下，光器件芯片龙头"
+    },
+    {
+      "code": "603083",
+      "name_zh": "剑桥科技",
+      "market": "上交所",
+      "sector": "optical_module",
+      "description": "光模块+以太网交换机双主线，AI数据中心互连核心供应商，800G光模块出货放量"
     },
     {
       "code": "000977",
