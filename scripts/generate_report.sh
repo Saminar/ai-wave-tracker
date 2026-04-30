@@ -631,7 +631,7 @@ html = f'''<!DOCTYPE html>
       <table>
         <thead>
           <tr>
-            <th>代码</th><th>公司</th><th>市场</th><th>板块</th><th>核心逻辑</th><th>关注信号</th>
+            <th>代码</th><th>公司</th><th>市场</th><th>板块</th><th>PE</th><th>核心逻辑</th><th>关注信号</th>
           </tr>
         </thead>
         <tbody id="ashare-table-body"></tbody>
@@ -660,7 +660,7 @@ html = f'''<!DOCTYPE html>
       <table>
         <thead>
           <tr>
-            <th>代码</th><th>公司</th><th>板块</th><th>市值(亿$)</th><th>核心竞争力</th><th>AI相关性</th>
+            <th>代码</th><th>公司</th><th>板块</th><th>市值(亿$)</th><th>PE</th><th>PEG</th><th>核心竞争力</th><th>AI相关性</th>
           </tr>
         </thead>
         <tbody id="us-table-body"></tbody>
@@ -737,93 +737,97 @@ const REPORT_DATE = '{report_date}';
 
 const ashareData = [
   // ── AI芯片/算力 ──
-  {{ code:"688256", name:"寒武纪", market:"科创板", sector:"AI推理芯片", logic:"国产AI推理芯片龙头，思元590系列，政府采购加速", signal:"watch" }},
-  {{ code:"688041", name:"海光信息", market:"科创板", sector:"CPU/DCU", logic:"x86兼容DCU，数据中心加速场景，国产替代路线", signal:"hold" }},
-  {{ code:"688047", name:"龙芯中科", market:"科创板", sector:"CPU", logic:"自主LoongArch ISA，党政军信创核心受益", signal:"hold" }},
-  {{ code:"603828", name:"澜起科技", market:"上交所", sector:"HBM接口", logic:"DDR5/HBM接口芯片超级周期，A股核心AI硬件受益", signal:"buy" }},
-  {{ code:"301269", name:"华大九天", market:"创业板", sector:"EDA", logic:"国产EDA唯一上市龙头，国家软件自主可控战略", signal:"buy" }},
+  {{ code:"688256", name:"寒武纪", market:"科创板", sector:"AI推理芯片", pe:null, peg:null, logic:"国产AI推理芯片龙头，思元590系列，政府采购加速", signal:"watch" }},
+  {{ code:"688041", name:"海光信息", market:"科创板", sector:"CPU/DCU", pe:85, peg:2.1, logic:"x86兼容DCU，数据中心加速场景，国产替代路线", signal:"hold" }},
+  {{ code:"688047", name:"龙芯中科", market:"科创板", sector:"CPU", pe:120, peg:null, logic:"自主LoongArch ISA，党政军信创核心受益", signal:"hold" }},
+  {{ code:"603828", name:"澜起科技", market:"上交所", sector:"HBM接口", pe:28, peg:0.9, logic:"DDR5/HBM接口芯片超级周期，A股核心AI硬件受益", signal:"buy" }},
+  {{ code:"301269", name:"华大九天", market:"创业板", sector:"EDA", pe:55, peg:1.5, logic:"国产EDA唯一上市龙头，国家软件自主可控战略", signal:"buy" }},
   // ── 光模块/光器件 ──
-  {{ code:"300308", name:"中际旭创", market:"创业板", sector:"光模块", logic:"800G/1.6T全球龙头，NVDA/Meta/MSFT核心供应商", signal:"buy" }},
-  {{ code:"300394", name:"天孚通信", market:"创业板", sector:"光器件", logic:"FA组件/光器件上游，随光模块出货量弹性增长", signal:"buy" }},
-  {{ code:"300502", name:"新易盛", market:"创业板", sector:"光模块", logic:"800G快速放量，1.6T技术储备完善", signal:"buy" }},
-  {{ code:"000988", name:"华工科技", market:"深交所", sector:"激光/光模块", logic:"激光器+光模块多元化，汽车激光切割新增长极", signal:"hold" }},
-  {{ code:"002281", name:"光迅科技", market:"深交所", sector:"光器件", logic:"中国信科旗下，光芯片自主化核心企业", signal:"hold" }},
-  {{ code:"603083", name:"剑桥科技", market:"上交所", sector:"光模块/交换机", logic:"光模块+以太网交换机双主线，AI数据中心互连核心，800G出货加速，2026年高增长可期", signal:"buy" }},
+  {{ code:"300308", name:"中际旭创", market:"创业板", sector:"光模块", pe:22, peg:0.7, logic:"800G/1.6T全球龙头，NVDA/Meta/MSFT核心供应商", signal:"buy" }},
+  {{ code:"300394", name:"天孚通信", market:"创业板", sector:"光器件", pe:30, peg:0.9, logic:"FA组件/光器件上游，随光模块出货量弹性增长", signal:"buy" }},
+  {{ code:"300502", name:"新易盛", market:"创业板", sector:"光模块", pe:25, peg:0.8, logic:"800G快速放量，1.6T技术储备完善", signal:"buy" }},
+  {{ code:"000988", name:"华工科技", market:"深交所", sector:"激光/光模块", pe:20, peg:1.0, logic:"激光器+光模块多元化，汽车激光切割新增长极", signal:"hold" }},
+  {{ code:"002281", name:"光迅科技", market:"深交所", sector:"光器件", pe:18, peg:1.1, logic:"中国信科旗下，光芯片自主化核心企业", signal:"hold" }},
+  {{ code:"603083", name:"剑桥科技", market:"上交所", sector:"光模块/交换机", pe:20, peg:0.6, logic:"光模块+以太网交换机双主线，AI数据中心互连核心，800G出货加速，2026年高增长可期", signal:"buy" }},
   // ── AI服务器 ──
-  {{ code:"000977", name:"浪潮信息", market:"深交所", sector:"AI服务器", logic:"国内AI服务器龙头，腾讯/阿里/百度核心供应商", signal:"buy" }},
-  {{ code:"601138", name:"工业富联", market:"上交所", sector:"AI服务器ODM", logic:"全球AI服务器ODM前三，英伟达GPU服务器代工", signal:"buy" }},
-  {{ code:"603019", name:"中科曙光", market:"上交所", sector:"高性能计算", logic:"高性能计算+AI服务器，政府/科研机构优先采购", signal:"hold" }},
+  {{ code:"000977", name:"浪潮信息", market:"深交所", sector:"AI服务器", pe:15, peg:0.8, logic:"国内AI服务器龙头，腾讯/阿里/百度核心供应商", signal:"buy" }},
+  {{ code:"601138", name:"工业富联", market:"上交所", sector:"AI服务器ODM", pe:18, peg:0.9, logic:"全球AI服务器ODM前三，英伟达GPU服务器代工", signal:"buy" }},
+  {{ code:"603019", name:"中科曙光", market:"上交所", sector:"高性能计算", pe:25, peg:1.2, logic:"高性能计算+AI服务器，政府/科研机构优先采购", signal:"hold" }},
   // ── 存储 ──
-  {{ code:"603986", name:"兆易创新", market:"深交所", sector:"存储芯片", logic:"NOR Flash/DRAM国产龙头，AI端侧存储需求爆发受益", signal:"buy" }},
-  {{ code:"300223", name:"北京君正", market:"创业板", sector:"存储芯片", logic:"DRAM+SRAM芯片，车载/工业+AI边缘计算受益", signal:"watch" }},
+  {{ code:"603986", name:"兆易创新", market:"深交所", sector:"存储芯片", pe:35, peg:1.0, logic:"NOR Flash/DRAM国产龙头，AI端侧存储需求爆发受益", signal:"buy" }},
+  {{ code:"300223", name:"北京君正", market:"创业板", sector:"存储芯片", pe:40, peg:1.3, logic:"DRAM+SRAM芯片，车载/工业+AI边缘计算受益", signal:"watch" }},
   // ── 半导体设备 ──
-  {{ code:"002371", name:"北方华创", market:"深交所", sector:"半导体设备", logic:"刻蚀/PVD设备国产龙头，国内晶圆厂扩产核心受益", signal:"buy" }},
-  {{ code:"688012", name:"中微公司", market:"科创板", sector:"半导体设备", logic:"等离子刻蚀设备，5nm制程突破，国产替代加速", signal:"buy" }},
-  {{ code:"688072", name:"拓荆科技", market:"科创板", sector:"半导体设备", logic:"薄膜沉积PECVD/ALD设备，先进制程关键环节", signal:"watch" }},
+  {{ code:"002371", name:"北方华创", market:"深交所", sector:"半导体设备", pe:38, peg:1.1, logic:"刻蚀/PVD设备国产龙头，国内晶圆厂扩产核心受益", signal:"buy" }},
+  {{ code:"688012", name:"中微公司", market:"科创板", sector:"半导体设备", pe:45, peg:1.2, logic:"等离子刻蚀设备，5nm制程突破，国产替代加速", signal:"buy" }},
+  {{ code:"688072", name:"拓荆科技", market:"科创板", sector:"半导体设备", pe:55, peg:1.5, logic:"薄膜沉积PECVD/ALD设备，先进制程关键环节", signal:"watch" }},
   // ── 半导体材料 ──
-  {{ code:"002318", name:"雅克科技", market:"深交所", sector:"半导体材料", logic:"半导体特气/前驱体材料，先进制程必需品", signal:"hold" }},
-  {{ code:"688188", name:"南大光电", market:"科创板", sector:"半导体材料", logic:"光刻胶/电子特气，EUV光刻胶国产突破", signal:"buy" }},
-  {{ code:"002106", name:"鼎龙股份", market:"深交所", sector:"半导体材料", logic:"CMP抛光垫国产替代龙头，晶圆制造关键耗材", signal:"hold" }},
-  {{ code:"603989", name:"江化微", market:"上交所", sector:"半导体材料", logic:"超纯电子湿化学品，12寸晶圆线配套供应商", signal:"hold" }},
+  {{ code:"002318", name:"雅克科技", market:"深交所", sector:"半导体材料", pe:28, peg:1.2, logic:"半导体特气/前驱体材料，先进制程必需品", signal:"hold" }},
+  {{ code:"688188", name:"南大光电", market:"科创板", sector:"半导体材料", pe:60, peg:1.8, logic:"光刻胶/电子特气，EUV光刻胶国产突破", signal:"buy" }},
+  {{ code:"002106", name:"鼎龙股份", market:"深交所", sector:"半导体材料", pe:30, peg:1.3, logic:"CMP抛光垫国产替代龙头，晶圆制造关键耗材", signal:"hold" }},
+  {{ code:"603989", name:"江化微", market:"上交所", sector:"半导体材料", pe:22, peg:1.1, logic:"超纯电子湿化学品，12寸晶圆线配套供应商", signal:"hold" }},
   // ── 先进封装 ──
-  {{ code:"601986", name:"长电科技", market:"上交所", sector:"先进封装", logic:"全球封测前三，FCBGA/SiP高端封装受益AI算力需求", signal:"buy" }},
-  {{ code:"002156", name:"通富微电", market:"深交所", sector:"先进封装", logic:"AMD/英伟达封测合作，Chiplet先进封装受益", signal:"buy" }},
-  {{ code:"002185", name:"华天科技", market:"深交所", sector:"先进封装", logic:"车载+AI封测双轮驱动，Bumping/WLP产能扩张", signal:"hold" }},
+  {{ code:"601986", name:"长电科技", market:"上交所", sector:"先进封装", pe:20, peg:0.8, logic:"全球封测前三，FCBGA/SiP高端封装受益AI算力需求", signal:"buy" }},
+  {{ code:"002156", name:"通富微电", market:"深交所", sector:"先进封装", pe:22, peg:0.9, logic:"AMD/英伟达封测合作，Chiplet先进封装受益", signal:"buy" }},
+  {{ code:"002185", name:"华天科技", market:"深交所", sector:"先进封装", pe:18, peg:1.0, logic:"车载+AI封测双轮驱动，Bumping/WLP产能扩张", signal:"hold" }},
   // ── 网络互连 ──
-  {{ code:"301165", name:"锐捷网络", market:"创业板", sector:"网络互连", logic:"AI训练集群万兆/400G交换机，国内数据中心核心供应商", signal:"buy" }},
+  {{ code:"301165", name:"锐捷网络", market:"创业板", sector:"网络互连", pe:25, peg:0.8, logic:"AI训练集群万兆/400G交换机，国内数据中心核心供应商", signal:"buy" }},
   // ── 电源/散热 ──
-  {{ code:"002334", name:"英威腾", market:"深交所", sector:"电源/散热", logic:"数据中心UPS+储能逆变器，AI算力配套基础设施", signal:"hold" }},
-  {{ code:"301018", name:"申菱环境", market:"创业板", sector:"电源/散热", logic:"液冷/精密空调，AI数据中心散热需求爆发受益", signal:"buy" }},
+  {{ code:"002334", name:"英威腾", market:"深交所", sector:"电源/散热", pe:20, peg:1.0, logic:"数据中心UPS+储能逆变器，AI算力配套基础设施", signal:"hold" }},
+  {{ code:"301018", name:"申菱环境", market:"创业板", sector:"电源/散热", pe:30, peg:0.9, logic:"液冷/精密空调，AI数据中心散热需求爆发受益", signal:"buy" }},
   // ── AI应用 ──
-  {{ code:"002230", name:"科大讯飞", market:"深交所", sector:"AI应用", logic:"星火大模型龙头，教育/医疗/政务AI应用场景落地", signal:"hold" }},
-  {{ code:"300418", name:"昆仑万维", market:"创业板", sector:"AI应用", logic:"天工大模型，AGI布局最激进A股标的之一", signal:"watch" }},
+  {{ code:"002230", name:"科大讯飞", market:"深交所", sector:"AI应用", pe:60, peg:2.0, logic:"星火大模型龙头，教育/医疗/政务AI应用场景落地", signal:"hold" }},
+  {{ code:"300418", name:"昆仑万维", market:"创业板", sector:"AI应用", pe:null, peg:null, logic:"天工大模型，AGI布局最激进A股标的之一", signal:"watch" }},
   // ── 电力基建（发电/输电/储电/用电） ──
-  {{ code:"601985", name:"中国核电", market:"上交所", sector:"电力基建/发电", logic:"核电龙头，数据中心清洁能源供应，签约微软/谷歌等AI企业核电PPA合同趋势受益", signal:"accumulate" }},
-  {{ code:"600900", name:"长江电力", market:"上交所", sector:"电力基建/发电", logic:"水电巨头，零碳稳定电力，AI数据中心偏好清洁能源PPA，股息率高安全边际足", signal:"accumulate" }},
-  {{ code:"600406", name:"国电南瑞", market:"上交所", sector:"电力基建/输电", logic:"智能电网核心设备龙头，数字化电网+AI调度系统，国家电网直系受益方", signal:"buy" }},
-  {{ code:"600089", name:"特变电工", market:"上交所", sector:"电力基建/输电", logic:"变压器全球龙头，国内外超高压变压器订单爆满，AI数据中心配套电力设施直接受益", signal:"buy" }},
-  {{ code:"688676", name:"金盘科技", market:"科创板", sector:"电力基建/输电", logic:"固态变压器/数字能源管理设备，数据中心专用模块化变压器，新型电力系统受益", signal:"buy" }},
-  {{ code:"002364", name:"中恒电气", market:"深交所", sector:"电力基建/输电", logic:"HVDC换流阀+直流断路器，大型数据中心直流供电改造，特高压输电核心设备", signal:"buy" }},
-  {{ code:"300750", name:"宁德时代", market:"创业板", sector:"电力基建/储电", logic:"储能BESS全球龙头，AI数据中心UPS级大型储能系统，大型电网侧储能订单持续扩张", signal:"buy" }},
-  {{ code:"300274", name:"阳光电源", market:"创业板", sector:"电力基建/储电", logic:"储能逆变器+光伏逆变器双龙头，大型储能电站系统集成全球前三，数据中心供电侧受益", signal:"accumulate" }},
-  {{ code:"002335", name:"科华数据", market:"深交所", sector:"电力基建/用电", logic:"数据中心UPS+模块化机房，国内AI算力基础设施配套电源供应商", signal:"buy" }},
-  {{ code:"002837", name:"英维克", market:"深交所", sector:"电力基建/用电", logic:"数据中心精密温控+液冷系统，AI服务器高热密度催生液冷爆发，订单高速增长", signal:"accumulate" }},
-  {{ code:"600875", name:"东方电气", market:"上交所", sector:"电力基建/发电设备", logic:"核电/风电/水电发电设备制造龙头，核电站主要设备供应，清洁能源产能扩张受益", signal:"accumulate" }},
+  {{ code:"601985", name:"中国核电", market:"上交所", sector:"电力基建/发电", pe:18, peg:1.2, logic:"核电龙头，数据中心清洁能源供应，签约微软/谷歌等AI企业核电PPA合同趋势受益", signal:"accumulate" }},
+  {{ code:"600900", name:"长江电力", market:"上交所", sector:"电力基建/发电", pe:22, peg:2.0, logic:"水电巨头，零碳稳定电力，AI数据中心偏好清洁能源PPA，股息率高安全边际足", signal:"accumulate" }},
+  {{ code:"600406", name:"国电南瑞", market:"上交所", sector:"电力基建/输电", pe:28, peg:1.1, logic:"智能电网核心设备龙头，数字化电网+AI调度系统，国家电网直系受益方", signal:"buy" }},
+  {{ code:"600089", name:"特变电工", market:"上交所", sector:"电力基建/输电", pe:15, peg:0.7, logic:"变压器全球龙头，国内外超高压变压器订单爆满，AI数据中心配套电力设施直接受益", signal:"buy" }},
+  {{ code:"688676", name:"金盘科技", market:"科创板", sector:"电力基建/输电", pe:25, peg:0.9, logic:"固态变压器/数字能源管理设备，数据中心专用模块化变压器，新型电力系统受益", signal:"buy" }},
+  {{ code:"002364", name:"中恒电气", market:"深交所", sector:"电力基建/输电", pe:20, peg:0.8, logic:"HVDC换流阀+直流断路器，大型数据中心直流供电改造，特高压输电核心设备", signal:"buy" }},
+  {{ code:"300750", name:"宁德时代", market:"创业板", sector:"电力基建/储电", pe:22, peg:0.85, logic:"储能BESS全球龙头，AI数据中心UPS级大型储能系统，大型电网侧储能订单持续扩张", signal:"buy" }},
+  {{ code:"300274", name:"阳光电源", market:"创业板", sector:"电力基建/储电", pe:18, peg:0.9, logic:"储能逆变器+光伏逆变器双龙头，大型储能电站系统集成全球前三，数据中心供电侧受益", signal:"accumulate" }},
+  {{ code:"002335", name:"科华数据", market:"深交所", sector:"电力基建/用电", pe:22, peg:0.9, logic:"数据中心UPS+模块化机房，国内AI算力基础设施配套电源供应商", signal:"buy" }},
+  {{ code:"002837", name:"英维克", market:"深交所", sector:"电力基建/用电", pe:28, peg:0.9, logic:"数据中心精密温控+液冷系统，AI服务器高热密度催生液冷爆发，订单高速增长", signal:"accumulate" }},
+  {{ code:"600875", name:"东方电气", market:"上交所", sector:"电力基建/发电设备", pe:16, peg:1.1, logic:"核电/风电/水电发电设备制造龙头，核电站主要设备供应，清洁能源产能扩张受益", signal:"accumulate" }},
 ];
 
 const usData = [
   // ── AI GPU/算力 ──
-  {{ code:"NVDA", name:"英伟达", sector:"AI GPU", mcap:"30000", moat:"AI GPU垄断，CUDA生态护城河，Blackwell/Rubin路线图清晰", ai_rel:"★★★★★" }},
-  {{ code:"AMD", name:"超微半导体", sector:"AI GPU", mcap:"2500", moat:"MI300X/MI350高性价比，ROCm生态追赶", ai_rel:"★★★★☆" }},
-  {{ code:"AVGO", name:"博通", sector:"ASIC/网络", mcap:"8000", moat:"定制ASIC三大超级客户，AI网络芯片垄断", ai_rel:"★★★★★" }},
-  {{ code:"MRVL", name:"迈威尔", sector:"光DSP/AI芯片", mcap:"550", moat:"光互联DSP+定制AI芯片，CPO核心使能者", ai_rel:"★★★★☆" }},
-  {{ code:"COHR", name:"科锐", sector:"光组件", mcap:"150", moat:"激光器+CPO技术，数据中心光模块关键组件", ai_rel:"★★★★☆" }},
-  {{ code:"SMCI", name:"超微电脑", sector:"AI服务器", mcap:"250", moat:"AI服务器快速上市能力，NVDA首选ODM合作", ai_rel:"★★★★★" }},
-  {{ code:"ARM", name:"Arm", sector:"CPU/NPU IP", mcap:"1300", moat:"移动端CPU IP垄断，AI芯片NPU设计基础", ai_rel:"★★★★☆" }},
-  {{ code:"SNPS", name:"新思科技", sector:"EDA", mcap:"900", moat:"EDA工具龙头，先进工艺芯片设计不可或缺", ai_rel:"★★★☆☆" }},
-  {{ code:"ASML", name:"阿斯麦", sector:"光刻机", mcap:"3200", moat:"EUV光刻机全球垄断，无可替代", ai_rel:"★★★★☆" }},
-  {{ code:"MSFT", name:"微软", sector:"云/AI平台", mcap:"32000", moat:"Azure+OpenAI捆绑，企业AI工作流标准", ai_rel:"★★★★★" }},
+  {{ code:"NVDA", name:"英伟达", sector:"AI GPU", mcap:"30000", pe:40, peg:0.95, moat:"AI GPU垄断，CUDA生态护城河，Blackwell/Rubin路线图清晰", ai_rel:"★★★★★" }},
+  {{ code:"AMD", name:"超微半导体", sector:"AI GPU", mcap:"2500", pe:28, peg:1.1, moat:"MI300X/MI350高性价比，ROCm生态追赶", ai_rel:"★★★★☆" }},
+  {{ code:"AVGO", name:"博通", sector:"ASIC/网络", mcap:"8000", pe:38, peg:1.0, moat:"定制ASIC三大超级客户，AI网络芯片垄断", ai_rel:"★★★★★" }},
+  {{ code:"MRVL", name:"迈威尔", sector:"光DSP/AI芯片", mcap:"550", pe:35, peg:1.2, moat:"光互联DSP+定制AI芯片，CPO核心使能者", ai_rel:"★★★★☆" }},
+  {{ code:"COHR", name:"科锐", sector:"光组件", mcap:"150", pe:45, peg:1.5, moat:"激光器+CPO技术，数据中心光模块关键组件", ai_rel:"★★★★☆" }},
+  {{ code:"SMCI", name:"超微电脑", sector:"AI服务器", mcap:"250", pe:16, peg:0.7, moat:"AI服务器快速上市能力，NVDA首选ODM合作", ai_rel:"★★★★★" }},
+  {{ code:"ARM", name:"Arm", sector:"CPU/NPU IP", mcap:"1300", pe:90, peg:2.5, moat:"移动端CPU IP垄断，AI芯片NPU设计基础", ai_rel:"★★★★☆" }},
+  {{ code:"SNPS", name:"新思科技", sector:"EDA", mcap:"900", pe:48, peg:2.0, moat:"EDA工具龙头，先进工艺芯片设计不可或缺", ai_rel:"★★★☆☆" }},
+  {{ code:"ASML", name:"阿斯麦", sector:"光刻机", mcap:"3200", pe:35, peg:1.4, moat:"EUV光刻机全球垄断，无可替代", ai_rel:"★★★★☆" }},
+  {{ code:"MSFT", name:"微软", sector:"云/AI平台", mcap:"32000", pe:33, peg:1.5, moat:"Azure+OpenAI捆绑，企业AI工作流标准", ai_rel:"★★★★★" }},
   // ── 存储/HBM ──
-  {{ code:"MU", name:"美光科技", sector:"存储/HBM", mcap:"1000", moat:"HBM3E全球三大供应商之一，AI算力内存核心", ai_rel:"★★★★★" }},
+  {{ code:"MU", name:"美光科技", sector:"存储/HBM", mcap:"1000", pe:12, peg:0.5, moat:"HBM3E全球三大供应商之一，AI算力内存核心", ai_rel:"★★★★★" }},
   // ── 半导体设备 ──
-  {{ code:"AMAT", name:"应用材料", sector:"半导体设备", mcap:"1500", moat:"CVD/PVD/CMP设备全覆盖，全球最大半导体设备公司", ai_rel:"★★★★☆" }},
-  {{ code:"LRCX", name:"科林研发", sector:"半导体设备", mcap:"1000", moat:"刻蚀设备龙头，FinFET/GAA先进制程必需", ai_rel:"★★★★☆" }},
-  {{ code:"KLAC", name:"科磊", sector:"半导体设备", mcap:"900", moat:"量测/检测设备垄断，良率管控不可或缺", ai_rel:"★★★☆☆" }},
+  {{ code:"AMAT", name:"应用材料", sector:"半导体设备", mcap:"1500", pe:22, peg:1.2, moat:"CVD/PVD/CMP设备全覆盖，全球最大半导体设备公司", ai_rel:"★★★★☆" }},
+  {{ code:"LRCX", name:"科林研发", sector:"半导体设备", mcap:"1000", pe:20, peg:1.1, moat:"刻蚀设备龙头，FinFET/GAA先进制程必需", ai_rel:"★★★★☆" }},
+  {{ code:"KLAC", name:"科磊", sector:"半导体设备", mcap:"900", pe:25, peg:1.5, moat:"量测/检测设备垄断，良率管控不可或缺", ai_rel:"★★★☆☆" }},
   // ── 先进封装/代工 ──
-  {{ code:"TSM", name:"台积电", sector:"先进封装/代工", mcap:"9000", moat:"2nm/CoWoS封装垄断，所有顶级AI芯片唯一代工", ai_rel:"★★★★★" }},
+  {{ code:"TSM", name:"台积电", sector:"先进封装/代工", mcap:"9000", pe:28, peg:1.0, moat:"2nm/CoWoS封装垄断，所有顶级AI芯片唯一代工", ai_rel:"★★★★★" }},
   // ── 网络互连 ──
-  {{ code:"CSCO", name:"思科", sector:"网络互连", mcap:"2000", moat:"数据中心400G/800G交换机，AI集群网络骨干", ai_rel:"★★★☆☆" }},
+  {{ code:"CSCO", name:"思科", sector:"网络互连", mcap:"2000", pe:16, peg:1.8, moat:"数据中心400G/800G交换机，AI集群网络骨干", ai_rel:"★★★☆☆" }},
   // ── 电源/散热 ──
-  {{ code:"VRT", name:"维谛技术", sector:"电源/散热", mcap:"400", moat:"数据中心UPS+液冷全栈，AI算力基础设施首选", ai_rel:"★★★★☆" }},
+  {{ code:"VRT", name:"维谛技术", sector:"电源/散热", mcap:"400", pe:38, peg:1.1, moat:"数据中心UPS+液冷全栈，AI算力基础设施首选", ai_rel:"★★★★☆" }},
   // ── AI应用 ──
-  {{ code:"GOOG", name:"谷歌", sector:"AI应用/云", mcap:"20000", moat:"Gemini+TPU自研，搜索/广告+GCP三引擎", ai_rel:"★★★★★" }},
-  {{ code:"META", name:"Meta", sector:"AI应用/社交", mcap:"15000", moat:"Llama开源生态+40亿用户AI推荐，广告AI驱动增长", ai_rel:"★★★★★" }},
+  {{ code:"GOOG", name:"谷歌", sector:"AI应用/云", mcap:"20000", pe:25, peg:1.3, moat:"Gemini+TPU自研，搜索/广告+GCP三引擎", ai_rel:"★★★★★" }},
+  {{ code:"META", name:"Meta", sector:"AI应用/社交", mcap:"15000", pe:28, peg:1.2, moat:"Llama开源生态+40亿用户AI推荐，广告AI驱动增长", ai_rel:"★★★★★" }},
+  // ── AI应用/服务器 ──
+  {{ code:"DELL", name:"戴尔", sector:"AI服务器", mcap:"600", pe:14, peg:0.7, moat:"企业AI基础设施+AI PC，PowerEdge AI服务器高增长", ai_rel:"★★★★☆" }},
+  {{ code:"AMZN", name:"亚马逊", sector:"云/AI平台", mcap:"23000", pe:35, peg:1.4, moat:"AWS云计算+Bedrock+Trainium芯片，最大云AI平台", ai_rel:"★★★★★" }},
+  {{ code:"CDNS", name:"Cadence", sector:"EDA", mcap:"800", pe:52, peg:2.2, moat:"EDA工具+IP核龙头，AI芯片验证仿真标准平台", ai_rel:"★★★☆☆" }},
   // ── 电力基建 ──
-  {{ code:"CEG", name:"Constellation Energy", sector:"电力基建/核电", mcap:"700", moat:"美国最大核电运营商，微软/谷歌签约核电PPA，AI数据中心清洁能源首选", ai_rel:"★★★★★" }},
-  {{ code:"VST", name:"Vistra Energy", sector:"电力基建/核电+热", mcap:"450", moat:"核电+天然气电力，德州电网龙头，数据中心选址优势，ERCOT市场高溢价", ai_rel:"★★★★☆" }},
-  {{ code:"NEE", name:"NextEra Energy", sector:"电力基建/可再生", mcap:"1500", moat:"全球最大可再生能源公司，AI数据中心长期PPA协议规模最大", ai_rel:"★★★☆☆" }},
-  {{ code:"ETN", name:"Eaton Corporation", sector:"电力基建/用电", mcap:"1200", moat:"数据中心配电+UPS+断路器全栈，AI数据中心电力基础设施订单激增", ai_rel:"★★★★☆" }},
-  {{ code:"PWR", name:"Quanta Services", sector:"电力基建/输电", mcap:"500", moat:"北美最大电网建设承包商，超导输电/变电站升级，数据中心电力接入工程", ai_rel:"★★★★☆" }},
+  {{ code:"CEG", name:"Constellation Energy", sector:"电力基建/核电", mcap:"700", pe:32, peg:1.8, moat:"美国最大核电运营商，微软/谷歌签约核电PPA，AI数据中心清洁能源首选", ai_rel:"★★★★★" }},
+  {{ code:"VST", name:"Vistra Energy", sector:"电力基建/核电+热", mcap:"450", pe:28, peg:1.5, moat:"核电+天然气电力，德州电网龙头，数据中心选址优势，ERCOT市场高溢价", ai_rel:"★★★★☆" }},
+  {{ code:"NEE", name:"NextEra Energy", sector:"电力基建/可再生", mcap:"1500", pe:22, peg:2.0, moat:"全球最大可再生能源公司，AI数据中心长期PPA协议规模最大", ai_rel:"★★★☆☆" }},
+  {{ code:"ETN", name:"Eaton Corporation", sector:"电力基建/用电", mcap:"1200", pe:30, peg:1.4, moat:"数据中心配电+UPS+断路器全栈，AI数据中心电力基础设施订单激增", ai_rel:"★★★★☆" }},
+  {{ code:"PWR", name:"Quanta Services", sector:"电力基建/输电", mcap:"500", pe:32, peg:1.3, moat:"北美最大电网建设承包商，超导输电/变电站升级，数据中心电力接入工程", ai_rel:"★★★★☆" }},
 ];
 
 // ─── 工具函数 ───────────────────────────────────────────────────────────────
@@ -1297,6 +1301,7 @@ function renderAshareTables() {{
       <td style="font-weight:600;">${{s.name}}</td>
       <td><span style="color:var(--muted);font-size:11px;">${{s.market}}</span></td>
       <td><span style="color:var(--yellow);font-size:12px;">${{s.sector}}</span></td>
+      <td style="color:var(--muted);font-size:12px;">${{s.pe != null ? s.pe + 'x' : '-'}}</td>
       <td style="color:var(--muted);font-size:12px;">${{s.logic}}</td>
       <td>${{signalBadge(s.signal)}}</td>
     </tr>
@@ -1312,6 +1317,8 @@ function renderUsTables() {{
       <td style="font-weight:600;">${{s.name}}</td>
       <td><span style="color:var(--yellow);font-size:12px;">${{s.sector}}</span></td>
       <td style="color:var(--muted);">${{(parseInt(s.mcap)/100).toFixed(0)}}B</td>
+      <td style="color:var(--muted);font-size:12px;">${{s.pe != null ? s.pe + 'x' : '-'}}</td>
+      <td style="color:var(--muted);font-size:12px;">${{s.peg != null ? (() => {{ const c = s.peg < 1 ? '#34d399' : s.peg > 1.5 ? '#f87171' : '#fbbf24'; return `<span style="color:${{c}};font-weight:600;">${{s.peg}}</span>`; }})() : '-'}}</td>
       <td style="color:var(--muted);font-size:12px;">${{s.moat}}</td>
       <td style="color:var(--green);">${{s.ai_rel}}</td>
     </tr>

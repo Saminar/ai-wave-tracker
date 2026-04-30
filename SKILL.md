@@ -310,6 +310,14 @@ Agent 根据 Phase 1-2 数据，填充以下 JSON 结构：
       "target_price_hkd": 38,
       "current_price_hkd": 28.5,
       "upside_pct": 33.3,
+      "pe": 42.0,
+      "peg": 1.1,
+      "analyst_target": {
+        "consensus": "buy",
+        "target_price": 38.0,
+        "upside_pct": 33.3,
+        "banks": ["大摩 TP40", "高盛 TP38", "中信 TP37"]
+      },
       "scores": {
         "tech_moat": 90,
         "market_position": 85,
@@ -346,6 +354,16 @@ Agent 根据 Phase 1-2 数据，填充以下 JSON 结构：
 | `hold` | 持有观望 | 五维综合分 50-60 + 无明显变化 |
 | `reduce` | 减仓 | 五维综合分 30-50 或估值过高 |
 | `sell` | 建议卖出 | 五维综合分 <30 或基本面恶化 |
+
+**分析要点（hk_recommendations 必填）：**
+- **pe**：基于最新财报 TTM 数据估算的市盈率（例：42.0），若负值或不适用填 null
+- **peg**：PE / 未来3年EPS年均增速，< 1.0 视为低估，1.0-1.5 合理，> 1.5 偏贵
+- **analyst_target**：填写主流机构（高盛/大摩/中信/国泰/麦格理等）投行共识：
+  - `consensus`：主流评级（"buy" / "outperform" / "hold" / "sell"）
+  - `target_price`：机构目标价均值（港元）
+  - `upside_pct`：相对现价潜在涨幅
+  - `banks`：至少列出 2-4 家机构及其目标价（如 `"大摩 TP40"`, `"高盛 TP38"`）
+- 以上字段在每个 `hk_recommendations` 条目中**强制输出**，不得省略
 
 ### Phase 4：HTML 报告生成
 
