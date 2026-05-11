@@ -524,6 +524,319 @@ html = f'''<!DOCTYPE html>
       </table>
     </div>
   </div>
+
+  <!-- 港股AI产业链全景 -->
+  <div class="card">
+    <div class="card-title">🗺️ 港股AI产业链核心标的全景 <span style="font-size:12px;color:var(--muted);font-weight:normal;">（共覆盖7大赛道 · 点击标签筛选）</span></div>
+    <div style="margin-bottom:16px;display:flex;flex-wrap:wrap;gap:8px;" id="hkFilterBtns">
+      <button onclick="filterHkTable('all',this)" class="hk-filter-btn active"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(56,189,248,0.4);background:rgba(56,189,248,0.15);color:#38bdf8;cursor:pointer;">
+        全部
+      </button>
+      <button onclick="filterHkTable('半导体',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        🔵 半导体/芯片
+      </button>
+      <button onclick="filterHkTable('互联网',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        🌐 互联网/云
+      </button>
+      <button onclick="filterHkTable('AI模型',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        🤖 AI模型/应用
+      </button>
+      <button onclick="filterHkTable('硬件',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        🖥️ 硬件/服务器
+      </button>
+      <button onclick="filterHkTable('通信',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        📡 通信/光模块
+      </button>
+      <button onclick="filterHkTable('能源',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        ⚡ 算力能源
+      </button>
+      <button onclick="filterHkTable('金融',this)" class="hk-filter-btn"
+        style="padding:5px 14px;border-radius:6px;font-size:12px;border:1px solid rgba(148,163,184,0.3);background:transparent;color:#94a3b8;cursor:pointer;">
+        🏦 金融科技
+      </button>
+    </div>
+    <div style="overflow-x:auto;">
+      <table id="hkFullTable">
+        <thead>
+          <tr>
+            <th>代码</th><th>公司</th><th>赛道</th><th>PE</th><th>AI关联度</th><th>核心看点</th><th>信号</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ── 半导体/芯片 ── -->
+          <tr data-cat="半导体">
+            <td><span style="font-family:monospace;color:var(--accent);">00981</span></td>
+            <td style="font-weight:600;">中芯国际</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">半导体</span></td>
+            <td style="color:var(--muted);">48x</td>
+            <td style="color:var(--yellow);">★★★★★</td>
+            <td style="color:var(--muted);font-size:12px;">大陆最先进代工厂，18A 1.8nm等效节点量产催化，国产替代主力</td>
+            <td><span class="badge badge-buy">强买</span></td>
+          </tr>
+          <tr data-cat="半导体">
+            <td><span style="font-family:monospace;color:var(--accent);">01347</span></td>
+            <td style="font-weight:600;">华虹半导体</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">半导体</span></td>
+            <td style="color:var(--muted);">25x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">特色工艺代工（BCD/IGBT/NOR Flash），汽车电子+工控受益，估值低于中芯</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="半导体">
+            <td><span style="font-family:monospace;color:var(--accent);">06882</span></td>
+            <td style="font-weight:600;">天数智芯</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">半导体</span></td>
+            <td style="color:var(--muted);">亏损期</td>
+            <td style="color:var(--yellow);">★★★★★</td>
+            <td style="color:var(--muted);font-size:12px;">国产AI训练GPU龙头，BI-V150对标H100，国补+算力租赁双轮驱动，高弹性</td>
+            <td><span class="badge badge-buy">买入</span></td>
+          </tr>
+          <tr data-cat="半导体">
+            <td><span style="font-family:monospace;color:var(--accent);">02369</span></td>
+            <td style="font-weight:600;">昆仑万维H(参考)</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">半导体</span></td>
+            <td style="color:var(--muted);">高增长</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">天工大模型+搜索AI化，港股AI模型稀缺标的，大模型商业化提速</td>
+            <td><span class="badge badge-accum">关注</span></td>
+          </tr>
+          <tr data-cat="半导体">
+            <td><span style="font-family:monospace;color:var(--accent);">06808</span></td>
+            <td style="font-weight:600;">澜起科技H</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">半导体</span></td>
+            <td style="color:var(--muted);">35x</td>
+            <td style="color:var(--yellow);">★★★★★</td>
+            <td style="color:var(--muted);font-size:12px;">内存接口芯片（RCD/MXC）全球前二，HBM4/DDR5需求爆发，AI训练内存稀缺赛道</td>
+            <td><span class="badge badge-buy">买入</span></td>
+          </tr>
+          <!-- ── 互联网/云 ── -->
+          <tr data-cat="互联网">
+            <td><span style="font-family:monospace;color:var(--accent);">09988</span></td>
+            <td style="font-weight:600;">阿里巴巴</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(52,211,153,0.12);color:#34d399;border-radius:4px;">互联网</span></td>
+            <td style="color:var(--muted);">14x</td>
+            <td style="color:var(--yellow);">★★★★★</td>
+            <td style="color:var(--muted);font-size:12px;">阿里云+通义千问，港股AI大模型最低估值平台，回购+分拆预期驱动重估</td>
+            <td><span class="badge badge-buy">买入</span></td>
+          </tr>
+          <tr data-cat="互联网">
+            <td><span style="font-family:monospace;color:var(--accent);">00700</span></td>
+            <td style="font-weight:600;">腾讯控股</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(52,211,153,0.12);color:#34d399;border-radius:4px;">互联网</span></td>
+            <td style="color:var(--muted);">22x</td>
+            <td style="color:var(--yellow);">★★★★★</td>
+            <td style="color:var(--muted);font-size:12px;">混元大模型+腾讯云，游戏/广告AI增效，自由现金流年增20%+，港股核心持仓</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="互联网">
+            <td><span style="font-family:monospace;color:var(--accent);">09888</span></td>
+            <td style="font-weight:600;">百度集团</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(52,211,153,0.12);color:#34d399;border-radius:4px;">互联网</span></td>
+            <td style="color:var(--muted);">12x</td>
+            <td style="color:var(--yellow);">★★★★★</td>
+            <td style="color:var(--muted);font-size:12px;">文心一言+萝卜快跑，AI搜索重构+自动驾驶，历史低估值+AI转型双期权</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="互联网">
+            <td><span style="font-family:monospace;color:var(--accent);">03690</span></td>
+            <td style="font-weight:600;">美团</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(52,211,153,0.12);color:#34d399;border-radius:4px;">互联网</span></td>
+            <td style="color:var(--muted);">20x</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">本地生活AI调度+无人配送，外卖+到店规模护城河，AI降本增效显著</td>
+            <td><span class="badge badge-hold">持有</span></td>
+          </tr>
+          <tr data-cat="互联网">
+            <td><span style="font-family:monospace;color:var(--accent);">00992</span></td>
+            <td style="font-weight:600;">联想集团</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(52,211,153,0.12);color:#34d399;border-radius:4px;">互联网</span></td>
+            <td style="color:var(--muted);">8x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">AI PC端侧算力+AI服务器，全球PC龙头转型AI硬件，极低估值+业务转型期权</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <!-- ── AI模型/应用 ── -->
+          <tr data-cat="AI模型">
+            <td><span style="font-family:monospace;color:var(--accent);">01024</span></td>
+            <td style="font-weight:600;">快手</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(167,139,250,0.12);color:#a78bfa;border-radius:4px;">AI模型</span></td>
+            <td style="color:var(--muted);">24x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">可灵AI视频生成全球领先，AI内容创作变现+广告AI增效，直播AI工具出海</td>
+            <td><span class="badge badge-buy">买入</span></td>
+          </tr>
+          <tr data-cat="AI模型">
+            <td><span style="font-family:monospace;color:var(--accent);">01810</span></td>
+            <td style="font-weight:600;">小米集团</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(167,139,250,0.12);color:#a78bfa;border-radius:4px;">AI模型</span></td>
+            <td style="color:var(--muted);">25x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">澎湃AI+端侧模型+AI汽车，手机/IoT/车三端AI协同，出海增长强劲</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="AI模型">
+            <td><span style="font-family:monospace;color:var(--accent);">09626</span></td>
+            <td style="font-weight:600;">哔哩哔哩</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(167,139,250,0.12);color:#a78bfa;border-radius:4px;">AI模型</span></td>
+            <td style="color:var(--muted);">亏损转正</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">AI UP主创作工具+视频内容理解，用户粘性高+商业化提速，长视频AI生产</td>
+            <td><span class="badge badge-hold">关注</span></td>
+          </tr>
+          <tr data-cat="AI模型">
+            <td><span style="font-family:monospace;color:var(--accent);">02015</span></td>
+            <td style="font-weight:600;">理想汽车</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(167,139,250,0.12);color:#a78bfa;border-radius:4px;">AI模型</span></td>
+            <td style="color:var(--muted);">30x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">自研端到端大模型+Mind GPT车载AI，端侧AI算力领先，L3自动驾驶时间表清晰</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <!-- ── 硬件/服务器 ── -->
+          <tr data-cat="硬件">
+            <td><span style="font-family:monospace;color:var(--accent);">00763</span></td>
+            <td style="font-weight:600;">中兴通讯</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(251,191,36,0.12);color:#fbbf24;border-radius:4px;">硬件</span></td>
+            <td style="color:var(--muted);">15x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">5G+AI服务器+光网络三线，算力基础设施全栈供应商，估值极具吸引力</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="硬件">
+            <td><span style="font-family:monospace;color:var(--accent);">00992</span></td>
+            <td style="font-weight:600;">联想集团</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(251,191,36,0.12);color:#fbbf24;border-radius:4px;">硬件</span></td>
+            <td style="color:var(--muted);">8x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">AI PC+AI服务器+ISG业务高增，全球AI终端硬件最便宜的弹性标的</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="硬件">
+            <td><span style="font-family:monospace;color:var(--accent);">02382</span></td>
+            <td style="font-weight:600;">舜宇光学</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(251,191,36,0.12);color:#fbbf24;border-radius:4px;">硬件</span></td>
+            <td style="color:var(--muted);">22x</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">车载镜头+手机摄像头，AI视觉感知核心器件，机器人视觉+AR/VR眼镜新增量</td>
+            <td><span class="badge badge-hold">持有</span></td>
+          </tr>
+          <tr data-cat="硬件">
+            <td><span style="font-family:monospace;color:var(--accent);">06690</span></td>
+            <td style="font-weight:600;">海尔智家</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(251,191,36,0.12);color:#fbbf24;border-radius:4px;">硬件</span></td>
+            <td style="color:var(--muted);">12x</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">AIoT生态+全屋智能，AI家居端侧算力部署，全球化家电AI品牌</td>
+            <td><span class="badge badge-hold">持有</span></td>
+          </tr>
+          <!-- ── 通信/光模块 ── -->
+          <tr data-cat="通信">
+            <td><span style="font-family:monospace;color:var(--accent);">01686</span></td>
+            <td style="font-weight:600;">华勤技术H</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">通信</span></td>
+            <td style="color:var(--muted);">10x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">AI服务器ODM+AI手机，算力服务器代工高增长，受益AI硬件出货量爆发</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="通信">
+            <td><span style="font-family:monospace;color:var(--accent);">06988</span></td>
+            <td style="font-weight:600;">新华三H</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">通信</span></td>
+            <td style="color:var(--muted);">18x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">国内AI网络+存储+服务器全栈，政企AI基础设施首选，华为替代受益</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="通信">
+            <td><span style="font-family:monospace;color:var(--accent);">00268</span></td>
+            <td style="font-weight:600;">金蝶国际</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(56,189,248,0.12);color:#38bdf8;border-radius:4px;">通信</span></td>
+            <td style="color:var(--muted);">55x</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">SaaS+AI财务，ERP国产化+AI大模型嵌入，企业服务AI化订阅增长</td>
+            <td><span class="badge badge-hold">关注</span></td>
+          </tr>
+          <!-- ── 算力能源 ── -->
+          <tr data-cat="能源">
+            <td><span style="font-family:monospace;color:var(--accent);">01816</span></td>
+            <td style="font-weight:600;">中广核电力</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(248,113,113,0.12);color:#f87171;border-radius:4px;">能源</span></td>
+            <td style="color:var(--muted);">12x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">核电24/7基荷，算力中心电力PPA潜在合作，高股息5.5%+低估值双重保护</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="能源">
+            <td><span style="font-family:monospace;color:var(--accent);">00836</span></td>
+            <td style="font-weight:600;">华润电力</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(248,113,113,0.12);color:#f87171;border-radius:4px;">能源</span></td>
+            <td style="color:var(--muted);">10x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">煤+风+光综合能源，数据中心供电合同，股息稳定5%，算力基础能源保障</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="能源">
+            <td><span style="font-family:monospace;color:var(--accent);">03898</span></td>
+            <td style="font-weight:600;">时代电气</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(248,113,113,0.12);color:#f87171;border-radius:4px;">能源</span></td>
+            <td style="color:var(--muted);">18x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">IGBT/SiC功率器件+牵引变频，数据中心UPS+新型储能关键电力电子</td>
+            <td><span class="badge badge-buy">买入</span></td>
+          </tr>
+          <tr data-cat="能源">
+            <td><span style="font-family:monospace;color:var(--accent);">01072</span></td>
+            <td style="font-weight:600;">东方电气</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(248,113,113,0.12);color:#f87171;border-radius:4px;">能源</span></td>
+            <td style="color:var(--muted);">16x</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">核电/风电/水电装备制造，清洁能源扩张主要设备商，发电量增长长期受益</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <!-- ── 金融科技 ── -->
+          <tr data-cat="金融">
+            <td><span style="font-family:monospace;color:var(--accent);">03888</span></td>
+            <td style="font-weight:600;">金山软件</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(34,211,153,0.12);color:#34d399;border-radius:4px;">金融</span></td>
+            <td style="color:var(--muted);">60x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">WPS AI+金山云，Office国产替代+AI办公，持有小米大量股权，AI订阅增长</td>
+            <td><span class="badge badge-hold">关注</span></td>
+          </tr>
+          <tr data-cat="金融">
+            <td><span style="font-family:monospace;color:var(--accent);">00285</span></td>
+            <td style="font-weight:600;">比亚迪电子</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(34,211,153,0.12);color:#34d399;border-radius:4px;">金融</span></td>
+            <td style="color:var(--muted);">20x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">AI服务器ODM+机器人代工+AI手机，比亚迪集团制造能力外溢，AI硬件代工龙头</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr data-cat="金融">
+            <td><span style="font-family:monospace;color:var(--accent);">06969</span></td>
+            <td style="font-weight:600;">思摩尔国际</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(34,211,153,0.12);color:#34d399;border-radius:4px;">金融</span></td>
+            <td style="color:var(--muted);">25x</td>
+            <td style="color:var(--yellow);">★★★☆☆</td>
+            <td style="color:var(--muted);font-size:12px;">精密制造+热控技术，AI散热液冷模组战略布局，制造业AI转型领先企业</td>
+            <td><span class="badge badge-hold">关注</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);display:flex;gap:20px;flex-wrap:wrap;">
+      <span>📊 共 <strong id="hkTableCount" style="color:var(--accent);">26</strong> 家核心标的</span>
+      <span>🔵 半导体5家 · 🌐 互联网5家 · 🤖 AI模型4家 · 🖥️ 硬件4家 · 📡 通信3家 · ⚡ 能源4家 · 🏦 金融3家</span>
+    </div>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════
@@ -902,7 +1215,7 @@ function switchTab(name, btn) {{
   if (btn) btn.classList.add('active');
   setTimeout(() => {{
     if (name === 'overview') {{ initRadarMain(); initUpsideBar(); initBubbleChart(); }}
-    if (name === 'hkstocks') {{ initPeChart(); initSignalChart(); }}
+    if (name === 'hkstocks') {{ initPeChart(); initSignalChart(); renderHkFullTable('all'); }}
     if (name === 'supply') {{ initSankeyChart(); initTreemapChart(); }}
     if (name === 'usstocks') {{ initUsMcapChart(); initUsPieChart(); renderUsTables(); }}
     if (name === 'portfolio') {{ initPortfolioCharts(); initRiskMatrix(); }}
@@ -1031,6 +1344,33 @@ function initSignalChart() {{
   }});
   window.addEventListener('resize', () => chart.resize());
 }}
+
+// ─── 港股全景标的筛选 ────────────────────────────────────────────────────────
+function filterHkTable(cat, btn) {{
+  const rows = document.querySelectorAll('#hkFullTable tbody tr');
+  let count = 0;
+  rows.forEach(r => {{
+    const show = cat === 'all' || r.dataset.cat === cat;
+    r.style.display = show ? '' : 'none';
+    if (show) count++;
+  }});
+  const countEl = document.getElementById('hkTableCount');
+  if (countEl) countEl.textContent = count;
+  // 更新按钮高亮
+  document.querySelectorAll('.hk-filter-btn').forEach(b => {{
+    b.style.background = 'transparent';
+    b.style.color = '#94a3b8';
+    b.style.border = '1px solid rgba(148,163,184,0.3)';
+    b.classList.remove('active');
+  }});
+  if (btn) {{
+    btn.style.background = 'rgba(56,189,248,0.15)';
+    btn.style.color = '#38bdf8';
+    btn.style.border = '1px solid rgba(56,189,248,0.4)';
+    btn.classList.add('active');
+  }}
+}}
+function renderHkFullTable(cat) {{ filterHkTable(cat || 'all', document.querySelector('.hk-filter-btn.active')); }}
 
 // ─── 产业链图表 ──────────────────────────────────────────────────────────────
 function initSankeyChart() {{
