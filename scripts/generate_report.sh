@@ -49,6 +49,87 @@ try:
 except Exception:
     hk_recs = []
 
+# ── 动态生成港股推荐卡片 HTML ──────────────────────────────────────────────────
+def make_hk_rec_card(r):
+    signal = r.get('signal', 'hold')
+    tier = r.get('tier', 2)
+    name = r.get('name', '?')
+    code = r.get('code', '')
+    upside = r.get('upside_pct')
+    current = r.get('current_price_hkd')
+    target  = r.get('target_price_hkd')
+    pe   = r.get('pe')
+    peg  = r.get('peg')
+    core_logic = r.get('core_logic', r.get('catalyst', ''))
+    catalysts  = r.get('catalysts', [])
+    at = r.get('analyst_target', {})
+
+    if signal == 'sell':
+        card_cls = 'rec-card avoid'
+        icon = '⚠️'
+        name_col = 'var(--red)'
+        badge = '<span class="badge badge-sell">回避</span>'
+    elif tier == 1:
+        card_cls = 'rec-card gold'
+        icon = '🥇'
+        name_col = '#f59e0b'
+        badge_map = {'buy':'<span class="badge badge-buy">强烈买入</span>',
+                     'accumulate':'<span class="badge badge-accum">逢低积累</span>',
+                     'hold':'<span class="badge badge-hold">持有</span>'}
+        badge = badge_map.get(signal, f'<span class="badge badge-hold">{signal}</span>')
+    else:
+        card_cls = 'rec-card silver'
+        icon = '🥈'
+        name_col = '#94a3b8'
+        badge_map = {'buy':'<span class="badge badge-buy">买入</span>',
+                     'accumulate':'<span class="badge badge-accum">逢低积累</span>',
+                     'hold':'<span class="badge badge-hold">持有</span>'}
+        badge = badge_map.get(signal, f'<span class="badge badge-hold">{signal}</span>')
+
+    pe_str  = f'PE ~{pe}x' if pe else '成长期'
+    peg_str = f' / PEG {peg}' if peg else ''
+    upside_str = f'+{upside:.0f}%' if upside and upside >= 0 else (f'{upside:.0f}%' if upside else '--')
+    price_str  = f'现价 HK${current:.1f} → 目标 HK${target:.0f}' if current and target else ''
+    at_banks   = ' · '.join(at.get('banks', [])[:2])  # 最多2家避免溢出
+    catalyst_str = ' · '.join(catalysts[:2]) if catalysts else ''
+
+    if signal == 'sell':
+        return f'''      <div class="{card_cls}">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">{icon}</span>
+            <span style="font-weight:700;font-size:16px;color:{name_col};margin-left:6px;">{name}</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">{code}.HK</span>
+          </div>
+          {badge}
+        </div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">{core_logic}</div>
+      </div>'''
+    else:
+        return f'''      <div class="{card_cls}">
+        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
+          <div>
+            <span style="font-size:16px;">{icon}</span>
+            <span style="font-weight:700;font-size:16px;color:{name_col};margin-left:6px;">{name}</span>
+            <span style="color:var(--muted);font-size:12px;margin-left:6px;">{code}.HK</span>
+          </div>
+          {badge}
+        </div>
+        <div style="font-size:22px;font-weight:700;color:var(--green);">{upside_str} <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
+        <div style="font-size:12px;color:var(--muted);margin:6px 0;">{pe_str}{peg_str}{" | " + price_str if price_str else ""}</div>
+        <div style="font-size:13px;color:var(--text);line-height:1.6;">{core_logic}</div>
+        {f'<div style="margin-top:8px;font-size:11px;color:var(--muted);">📊 机构: {at_banks}</div>' if at_banks else ""}
+        {f'<div style="margin-top:6px;font-size:11px;color:var(--yellow);">⚡ 催化剂: {catalyst_str}</div>' if catalyst_str else ""}
+      </div>'''
+
+if hk_recs:
+    hk_rec_cards_html = '\n'.join(make_hk_rec_card(r) for r in hk_recs)
+else:
+    # Fallback 静态卡片
+    hk_rec_cards_html = '''      <div class="rec-card gold">
+        <div style="text-align:center;color:var(--muted);padding:20px;">暂无港股推荐数据，请先运行 AI分析（Phase 3）</div>
+      </div>'''
+
 # ── 从 hk_recs 构建三个图表的数据 ──
 # 过滤掉 sell 信号且无目标价的标的（如商汤）
 chart_recs = [r for r in hk_recs if r.get('upside_pct') is not None]
@@ -356,132 +437,91 @@ html = f'''<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- 推荐卡片 -->
+  <!-- 推荐卡片（动态渲染自 aiwave_analysis.json → hk_recommendations） -->
   <div class="card">
-    <div class="card-title">⭐ 分级推荐标的</div>
+    <div class="card-title">⭐ 分级推荐标的 <span style="font-size:12px;color:var(--muted);font-weight:normal;">（实时更新自分析报告）</span></div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+{hk_rec_cards_html}
+    </div>
+  </div>
 
-      <div class="rec-card gold">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">🥇</span>
-            <span style="font-weight:700;font-size:16px;color:#f59e0b;margin-left:6px;">中芯国际</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">00981.HK</span>
-          </div>
-          <span class="badge badge-buy">强烈买入</span>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:var(--green);">+40% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
-        <div style="font-size:12px;color:var(--muted);margin:8px 0;">先进代工 | PE ~48x</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">18A量产催化剂 + 大基金三期加持 + 国产替代核心受益，2026年最确定的算力基础设施投资标的</div>
-        <div style="margin-top:12px;">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">五维综合评分</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;font-size:11px;">
-            <div>技术壁垒 <span style="color:var(--green);">90</span></div>
-            <div>AI受益度 <span style="color:var(--green);">95</span></div>
-            <div>政策顺风 <span style="color:var(--green);">98</span></div>
-          </div>
-        </div>
-        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: Q2 18A量产验证 · 大客户流片</div>
-      </div>
-
-      <div class="rec-card gold">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">🥇</span>
-            <span style="font-weight:700;font-size:16px;color:#f59e0b;margin-left:6px;">阿里巴巴</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">09988.HK</span>
-          </div>
-          <span class="badge badge-buy">强烈买入</span>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:var(--green);">+85% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
-        <div style="font-size:12px;color:var(--muted);margin:8px 0;">云/AI平台 | PE ~14x</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">阿里云AI变现加速，通义大模型API调用量爆发，估值处历史极低位，大规模回购支撑</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: AI云收入超预期 · 回购规模扩大</div>
-      </div>
-
-      <div class="rec-card gold">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">🥇</span>
-            <span style="font-weight:700;font-size:16px;color:#f59e0b;margin-left:6px;">联想集团</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">00992.HK</span>
-          </div>
-          <span class="badge badge-buy">强烈买入</span>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:var(--green);">+30% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
-        <div style="font-size:12px;color:var(--muted);margin:8px 0;">AI服务器+AI PC | PE ~8x</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">PE仅8x严重低估，$155B订单储备，AI PC换机超级周期+ISG AI服务器利润率改善</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: ISG利润率超预期 · AI PC出货数据</div>
-      </div>
-
-      <div class="rec-card silver">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">🥈</span>
-            <span style="font-weight:700;font-size:16px;color:#94a3b8;margin-left:6px;">天数智芯</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">09903.HK</span>
-          </div>
-          <span class="badge badge-accum">逢低积累</span>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:var(--green);">+50% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
-        <div style="font-size:12px;color:var(--muted);margin:8px 0;">国产AI GPU | 成长期</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">国产AI训练GPU，DeepSeek生态适配受益，华为替代路线之外重要备选，高风险高弹性</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: 大客户订单 · DeepSeek适配发布</div>
-      </div>
-
-      <div class="rec-card silver">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">🥈</span>
-            <span style="font-weight:700;font-size:16px;color:#94a3b8;margin-left:6px;">澜起科技H</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">06809.HK</span>
-          </div>
-          <span class="badge badge-buy">买入</span>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:var(--green);">+45% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
-        <div style="font-size:12px;color:var(--muted);margin:8px 0;">HBM接口芯片 | PE ~28x</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">DDR5/HBM接口芯片超级周期，8-12季度能见度极高，A股澜起科技H股折价提供安全边际</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: HBM4接口量产 · AI服务器内存升级</div>
-      </div>
-
-      <div class="rec-card silver">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">🥈</span>
-            <span style="font-weight:700;font-size:16px;color:#94a3b8;margin-left:6px;">百度集团</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">09888.HK</span>
-          </div>
-          <span class="badge badge-accum">逢低积累</span>
-        </div>
-        <div style="font-size:22px;font-weight:700;color:var(--green);">+35% <span style="font-size:13px;color:var(--muted);">目标弹性</span></div>
-        <div style="font-size:12px;color:var(--muted);margin:8px 0;">AI原生平台 | PE ~12x</div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">文心大模型API爆发，萝卜快跑L4自动驾驶商业化，估值处历史低位，困境反转逻辑</div>
-        <div style="margin-top:10px;font-size:11px;color:var(--yellow);">⚡ 催化剂: 萝卜快跑城市扩张 · AI广告收入转正</div>
-      </div>
-
-      <div class="rec-card avoid">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">⚠️</span>
-            <span style="font-weight:700;font-size:16px;color:var(--red);margin-left:6px;">商汤科技</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">00020.HK</span>
-          </div>
-          <span class="badge badge-sell">回避</span>
-        </div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">持续亏损，AI变现路径不清晰，估值虚高（PS>10x），短期无催化剂，优先回避</div>
-      </div>
-
-      <div class="rec-card avoid">
-        <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;">
-          <div>
-            <span style="font-size:16px;">⚠️</span>
-            <span style="font-weight:700;font-size:16px;color:var(--red);margin-left:6px;">旷视科技</span>
-            <span style="color:var(--muted);font-size:12px;margin-left:6px;">06060.HK</span>
-          </div>
-          <span class="badge badge-sell">回避</span>
-        </div>
-        <div style="font-size:13px;color:var(--text);line-height:1.6;">计算机视觉竞争格局恶化，政府安防预算压缩，持续亏损，无近期反转催化剂</div>
-      </div>
+  <!-- 港股电力基建 -->
+  <div class="card">
+    <div class="card-title">⚡ 港股电力基建标的 — AI算力能源链</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:14px;">AI数据中心电力需求2025-2030年CAGR超40%，港股能源基建提供高股息+政策受益双重逻辑</div>
+    <div style="overflow-x:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>代码</th><th>公司</th><th>板块</th><th>股息率</th><th>PE</th><th>核心逻辑</th><th>信号</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">01816</span></td>
+            <td style="font-weight:600;">中广核电力</td>
+            <td><span style="color:var(--yellow);font-size:12px;">核电/发电</span></td>
+            <td style="color:var(--green);">~5.5%</td>
+            <td style="color:var(--muted);">12x</td>
+            <td style="color:var(--muted);font-size:12px;">中国核电运营商，AI时代24/7清洁能源需求，核电PPA潜力标的，高股息低估值</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">00836</span></td>
+            <td style="font-weight:600;">华润电力</td>
+            <td><span style="color:var(--yellow);font-size:12px;">综合电力</span></td>
+            <td style="color:var(--green);">~5.0%</td>
+            <td style="color:var(--muted);">10x</td>
+            <td style="color:var(--muted);font-size:12px;">煤电+风电+光伏综合能源，清洁能源转型+数据中心供电合同，股息稳定，估值极低</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">00916</span></td>
+            <td style="font-weight:600;">龙源电力</td>
+            <td><span style="color:var(--yellow);font-size:12px;">风电/可再生</span></td>
+            <td style="color:var(--green);">~4.8%</td>
+            <td style="color:var(--muted);">11x</td>
+            <td style="color:var(--muted);font-size:12px;">全球最大风电运营商，清洁能源PPA+绿证，AI数据中心可再生能源采购需求受益</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">00991</span></td>
+            <td style="font-weight:600;">大唐发电</td>
+            <td><span style="color:var(--yellow);font-size:12px;">火电/综合</span></td>
+            <td style="color:var(--green);">~4.5%</td>
+            <td style="color:var(--muted);">9x</td>
+            <td style="color:var(--muted);font-size:12px;">煤电转型+CCUS碳捕捉，AI电力基础保障型资产，估值历史低位+政策兜底</td>
+            <td><span class="badge badge-hold">关注</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">01071</span></td>
+            <td style="font-weight:600;">华电国际</td>
+            <td><span style="color:var(--yellow);font-size:12px;">火电/综合</span></td>
+            <td style="color:var(--green);">~4.2%</td>
+            <td style="color:var(--muted);">8x</td>
+            <td style="color:var(--muted);font-size:12px;">发电量持续增长，煤电加价+碳排放收益，AI数据中心供电需求稳定增量</td>
+            <td><span class="badge badge-hold">关注</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">01072</span></td>
+            <td style="font-weight:600;">东方电气</td>
+            <td><span style="color:var(--yellow);font-size:12px;">发电设备制造</span></td>
+            <td style="color:var(--green);">~3.5%</td>
+            <td style="color:var(--muted);">16x</td>
+            <td style="color:var(--muted);font-size:12px;">核电/风电/水电发电设备制造龙头，核电站主设备供应，清洁能源装备扩张受益</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
+          <tr>
+            <td><span style="font-family:monospace;color:var(--accent);">03898</span></td>
+            <td style="font-weight:600;">时代电气</td>
+            <td><span style="color:var(--yellow);font-size:12px;">轨交/电力电子</span></td>
+            <td style="color:var(--muted);">~1.5%</td>
+            <td style="color:var(--muted);">18x</td>
+            <td style="color:var(--muted);font-size:12px;">宁德时代旗下，轨道交通牵引+IGBT/SiC功率器件，新型电力电子核心设备，数据中心UPS级应用</td>
+            <td><span class="badge badge-buy">买入</span></td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 </div>
@@ -596,10 +636,13 @@ html = f'''<!DOCTYPE html>
         </div>
         <div style="font-size:13px;color:var(--muted);line-height:1.7;">AI数据中心电力需求2025-2030年CAGR超40%，核电PPA/储能BESS/智能电网成为算力基础设施新短板。核电+储能+特高压变压器是最直接受益链条。</div>
         <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px;">
-          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">CEG Constellation</span>
-          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">600406 国电南瑞</span>
-          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">300750 宁德时代</span>
-          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">600089 特变电工</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">CEG/VST/TLN 美国核电</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">01816 中广核电力</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(251,191,36,0.1);color:#fbbf24;border-radius:4px;">03898 时代电气</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">600406 国电南瑞</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">600089 特变电工</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">300750 宁德时代</span>
+          <span style="font-size:11px;padding:3px 8px;background:rgba(56,189,248,0.1);color:#38bdf8;border-radius:4px;">VRT/ETN/PWR 基建</span>
         </div>
       </div>
       </div>
@@ -789,6 +832,16 @@ const ashareData = [
   {{ code:"002335", name:"科华数据", market:"深交所", sector:"电力基建/用电", pe:22, peg:0.9, logic:"数据中心UPS+模块化机房，国内AI算力基础设施配套电源供应商", signal:"buy" }},
   {{ code:"002837", name:"英维克", market:"深交所", sector:"电力基建/用电", pe:28, peg:0.9, logic:"数据中心精密温控+液冷系统，AI服务器高热密度催生液冷爆发，订单高速增长", signal:"accumulate" }},
   {{ code:"600875", name:"东方电气", market:"上交所", sector:"电力基建/发电设备", pe:16, peg:1.1, logic:"核电/风电/水电发电设备制造龙头，核电站主要设备供应，清洁能源产能扩张受益", signal:"accumulate" }},
+  {{ code:"002837", name:"英维克", market:"深交所", sector:"电力基建/用电", pe:28, peg:0.9, logic:"数据中心精密温控+液冷系统，AI服务器高热密度催生液冷爆发，订单高速增长", signal:"accumulate" }},
+  {{ code:"002851", name:"麦格米特", market:"深交所", sector:"电力基建/用电", pe:22, peg:0.85, logic:"数据中心精密电源+模块化UPS，国内AI算力基础设施核心配套电源供应商，订单高增长", signal:"buy" }},
+  {{ code:"300499", name:"高澜股份", market:"创业板", sector:"电力基建/用电", pe:35, peg:1.2, logic:"数据中心液冷散热解决方案，AI服务器单柜功率密度提升驱动液冷渗透率加速", signal:"accumulate" }},
+  {{ code:"301018", name:"申菱环境", market:"创业板", sector:"电力基建/用电", pe:30, peg:1.0, logic:"数据中心精密空调+间接蒸发冷却，绿色数据中心节能方案，订单连续翻倍增长", signal:"accumulate" }},
+  {{ code:"600406", name:"国电南瑞", market:"上交所", sector:"电力基建/输电", pe:28, peg:1.1, logic:"智能电网核心设备龙头，数字化电网+AI调度系统，国家电网直系受益方", signal:"buy" }},
+  {{ code:"601179", name:"中国西电", market:"上交所", sector:"电力基建/输电", pe:20, peg:0.9, logic:"特高压开关设备/GIS/变压器全系列，国内外特高压建设提速直接受益，隐形冠军", signal:"buy" }},
+  {{ code:"000400", name:"许继电气", market:"深交所", sector:"电力基建/输电", pe:22, peg:1.0, logic:"HVDC换流阀+直流断路器+继电保护，特高压核心设备，新型电力系统不可或缺", signal:"buy" }},
+  {{ code:"600312", name:"平高电气", market:"上交所", sector:"电力基建/输电", pe:18, peg:0.8, logic:"超高压开关设备+GIS龙头，数据中心输电升压变电站配套设备，海外订单扩张", signal:"buy" }},
+  {{ code:"002922", name:"伊戈尔", market:"深交所", sector:"电力基建/用电", pe:25, peg:0.95, logic:"光储充三合一微电网+数据中心备电系统，分布式能源管理新场景高速增长", signal:"accumulate" }},
+  {{ code:"002270", name:"华明装备", market:"深交所", sector:"电力基建/输电", pe:20, peg:0.85, logic:"换流变压器+线路接地开关，特高压柔性直流核心设备，西电东送+AI数据中心组网受益", signal:"buy" }},
 ];
 
 const usData = [
@@ -825,9 +878,12 @@ const usData = [
   // ── 电力基建 ──
   {{ code:"CEG", name:"Constellation Energy", sector:"电力基建/核电", mcap:"700", pe:32, peg:1.8, moat:"美国最大核电运营商，微软/谷歌签约核电PPA，AI数据中心清洁能源首选", ai_rel:"★★★★★" }},
   {{ code:"VST", name:"Vistra Energy", sector:"电力基建/核电+热", mcap:"450", pe:28, peg:1.5, moat:"核电+天然气电力，德州电网龙头，数据中心选址优势，ERCOT市场高溢价", ai_rel:"★★★★☆" }},
+  {{ code:"TLN", name:"Talen Energy", sector:"电力基建/核电", mcap:"110", pe:18, peg:0.9, moat:"核电直连Amazon数据中心，全球首个核电直供算力协议，监管获批后估值重估", ai_rel:"★★★★★" }},
   {{ code:"NEE", name:"NextEra Energy", sector:"电力基建/可再生", mcap:"1500", pe:22, peg:2.0, moat:"全球最大可再生能源公司，AI数据中心长期PPA协议规模最大", ai_rel:"★★★☆☆" }},
   {{ code:"ETN", name:"Eaton Corporation", sector:"电力基建/用电", mcap:"1200", pe:30, peg:1.4, moat:"数据中心配电+UPS+断路器全栈，AI数据中心电力基础设施订单激增", ai_rel:"★★★★☆" }},
   {{ code:"PWR", name:"Quanta Services", sector:"电力基建/输电", mcap:"500", pe:32, peg:1.3, moat:"北美最大电网建设承包商，超导输电/变电站升级，数据中心电力接入工程", ai_rel:"★★★★☆" }},
+  {{ code:"BE", name:"Bloom Energy", sector:"电力基建/储能", mcap:"55", pe:null, peg:null, moat:"固体氧化物燃料电池，数据中心分布式电源（不依赖电网），谷歌/微软均有部署合同", ai_rel:"★★★★☆" }},
+  {{ code:"FLNC", name:"Fluence Energy", sector:"电力基建/储能", mcap:"30", pe:null, peg:null, moat:"全球最大储能系统集成商之一，AI数据中心BESS大规模储能调峰，产能扩张快", ai_rel:"★★★★☆" }},
 ];
 
 // ─── 工具函数 ───────────────────────────────────────────────────────────────
