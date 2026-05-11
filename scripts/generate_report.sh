@@ -801,6 +801,15 @@ html = f'''<!DOCTYPE html>
             <td style="color:var(--muted);font-size:12px;">核电/风电/水电装备制造，清洁能源扩张主要设备商，发电量增长长期受益</td>
             <td><span class="badge badge-accum">积累</span></td>
           </tr>
+          <tr data-cat="能源">
+            <td><span style="font-family:monospace;color:var(--accent);">02688</span></td>
+            <td style="font-weight:600;">新奥能源</td>
+            <td><span style="font-size:11px;padding:2px 7px;background:rgba(248,113,113,0.12);color:#f87171;border-radius:4px;">能源</span></td>
+            <td style="color:var(--muted);">11x</td>
+            <td style="color:var(--yellow);">★★★★☆</td>
+            <td style="color:var(--muted);font-size:12px;">中国最大民营天然气分销商，300+城市管网，分布式能源供数据中心，向综合清洁能源转型</td>
+            <td><span class="badge badge-accum">积累</span></td>
+          </tr>
           <!-- ── 金融科技 ── -->
           <tr data-cat="金融">
             <td><span style="font-family:monospace;color:var(--accent);">03888</span></td>
